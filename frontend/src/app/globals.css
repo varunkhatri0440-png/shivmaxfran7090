@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --background: #060709;
+  --foreground: #f8fafc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-cinzel: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Luxury Gold Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060709;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #997a22, #d4af37, #f3e5ab);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f3e5ab;
+}
+
+/* Smooth range slider styling */
+input[type='range'] {
+  accent-color: #d4af37;
+}
+
+/* Hardware acceleration for full-bleed canvas scroller */
+canvas {
+  touch-action: pan-y;
+  image-rendering: -webkit-optimize-contrast;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ========================================== */
+/* MOBILE PERFORMANCE: Disable backdrop-blur  */
+/* backdrop-filter is extremely expensive on  */
+/* mobile GPUs — composites every frame.      */
+/* ========================================== */
+@media (max-width: 767px) {
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html,
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
+
+  canvas {
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .will-change-transform {
+    will-change: transform;
+  }
+}
+
+/* Ensure right wing desktop insignia is 100% permanently hidden on mobile and tablet */
+@media (max-width: 1023px) {
+  .right-wing-desktop-only {
+    display: none !important;
+  }
+}
+

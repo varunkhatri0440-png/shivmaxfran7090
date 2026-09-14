@@ -1,0 +1,19 @@
+{
+  "name": "shivaay-luxury-estate-platform",
+  "version": "1.0.0",
+  "description": "Ultra-luxury real estate platform with scroll-driven canvas background sequence, Next.js frontend, and Nest.js backend API.",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"magenta,cyan\" \"npm --prefix backend run start\" \"npm --prefix frontend run dev\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "start": "npm --prefix frontend run start",
+    "convert:frames": "python scripts/convert_frames.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
