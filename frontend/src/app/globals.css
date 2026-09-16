@@ -59,10 +59,25 @@ input[type='range'] {
 canvas {
   touch-action: pan-y;
   image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* Force GPU compositing for smoother frame rendering */
+  will-change: contents;
+  /* Prevent canvas from being anti-aliased incorrectly */
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* Desktop-specific canvas optimizations */
+@media (min-width: 1280px) {
+  canvas {
+    image-rendering: high-quality;
+    -webkit-font-smoothing: subpixel-antialiased;
+    /* Ensure proper layering and compositing */
+    contain: layout style paint;
+  }
 }
 
 /* ========================================== */
@@ -101,6 +116,132 @@ canvas {
 @media (max-width: 1023px) {
   .right-wing-desktop-only {
     display: none !important;
+  }
+}
+
+/* ========================================== */
+/* DESKTOP ANIMATED LOGO BACKGROUND           */
+/* Stunning GPU-accelerated animations        */
+/* ========================================== */
+@media (min-width: 1280px) {
+  @keyframes breathe {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 1;
+    }
+  }
+
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes rotateReverse {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0.06;
+    }
+    25% {
+      transform: translate(12px, -18px) rotate(3deg);
+      opacity: 0.12;
+    }
+    50% {
+      transform: translate(-8px, -28px) rotate(-2deg);
+      opacity: 0.09;
+    }
+    75% {
+      transform: translate(-18px, -12px) rotate(4deg);
+      opacity: 0.14;
+    }
+  }
+
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.8);
+    }
+  }
+
+  @keyframes orbit {
+    0% {
+      transform: translate(-50%, -50%) rotate(0deg) translateX(280px) rotate(0deg);
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(360deg) translateX(280px) rotate(-360deg);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+  }
+
+  @keyframes scanlines {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(4px);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.2;
+      filter: blur(50px);
+    }
+    50% {
+      opacity: 0.4;
+      filter: blur(40px);
+    }
+  }
+
+  @keyframes noise {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -5%); }
+    20% { transform: translate(-10%, 5%); }
+    30% { transform: translate(5%, -10%); }
+    40% { transform: translate(-5%, 15%); }
+    50% { transform: translate(-10%, 5%); }
+    60% { transform: translate(15%, 0); }
+    70% { transform: translate(0, 10%); }
+    80% { transform: translate(-15%, 0); }
+    90% { transform: translate(10%, 5%); }
+  }
+
+  /* Gradient utilities */
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
   }
 }
 

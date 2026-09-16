@@ -1,53 +1,192 @@
 /* ==========================================================================
-   SHIVMAX SOVEREIGN CREST - LUMINOUS BRUSH GLOW EFFECT
-   Illuminates the crest dynamically under the cursor like a soft golden
-   light brush. Fully hardware-accelerated for smooth 60-120fps on all devices.
+   SHIVMAX SOVEREIGN CREST - SMALL SUBTLE GLOW EFFECT
+   Compact, refined cursor-following effect with smaller radius
    ========================================================================== */
 
-/* Ambient golden brush glow aura */
+/* Primary ambient golden brush glow aura - Small and focused */
 .crest-brush-aura {
   opacity: var(--brush-opacity, 0);
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   background: radial-gradient(
-    circle 280px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(212, 175, 55, 0.14) 0%,
-    rgba(212, 175, 55, 0.05) 45%,
+    circle 200px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(212, 175, 55, 0.12) 0%,
+    rgba(212, 175, 55, 0.06) 40%,
+    rgba(212, 175, 55, 0.02) 70%,
     transparent 100%
   );
   will-change: opacity;
+  filter: blur(20px);
 }
 
-/* Luminous crest layer revealed smoothly under the brush */
+/* Secondary glow ring - Very small and subtle */
+.crest-brush-aura::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--brush-opacity, 0);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(
+    circle 160px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(243, 229, 171, 0.08) 0%,
+    rgba(212, 175, 55, 0.03) 50%,
+    transparent 100%
+  );
+  filter: blur(25px);
+  mix-blend-mode: screen;
+}
+
+/* Enhanced luminous crest layer revealed smoothly under the brush */
 .crest-brush-reveal {
   opacity: var(--brush-opacity, 0);
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   mask-image: radial-gradient(
-    circle 240px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.85) 35%,
-    rgba(0, 0, 0, 0.25) 70%,
+    circle 180px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.5) 35%,
+    rgba(0, 0, 0, 0.25) 65%,
+    rgba(0, 0, 0, 0.08) 85%,
     transparent 100%
   );
   -webkit-mask-image: radial-gradient(
-    circle 240px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.85) 35%,
-    rgba(0, 0, 0, 0.25) 70%,
+    circle 180px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.5) 35%,
+    rgba(0, 0, 0, 0.25) 65%,
+    rgba(0, 0, 0, 0.08) 85%,
     transparent 100%
   );
   will-change: opacity;
 }
 
-.crest-brush-reveal img,
-.crest-brush-reveal svg {
-  opacity: 0.95;
-  filter: brightness(1.22) contrast(1.15);
+.crest-brush-reveal img {
+  opacity: 0.8;
+  filter: brightness(1.12) contrast(1.06);
 }
 
-/* On mobile & tablet viewports (<1024px) and touch devices, remove the brush aura and reveal effects completely to prevent touch lag */
+/* ==========================================================================
+   CEO PORTRAIT - SMALL SUBTLE GLOW EFFECT (Desktop Only)
+   Compact, focused cursor-following glow
+   ========================================================================== */
+
+.ceo-portrait-frame {
+  position: relative;
+  transition: all 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ceo-portrait-frame:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 
+    0 28px 65px rgba(0, 0, 0, 0.88),
+    0 0 25px rgba(212, 175, 55, 0.1),
+    0 0 50px rgba(212, 175, 55, 0.05);
+  transform: translateY(-1px);
+}
+
+.ceo-portrait-frame:hover img {
+  transform: scale(1.01);
+  filter: brightness(1.05) contrast(1.02);
+}
+
+/* Primary glow layer - Small and focused */
+.ceo-hover-glow {
+  background: radial-gradient(
+    circle 220px at var(--ceo-glow-x, 50%) var(--ceo-glow-y, 50%),
+    rgba(212, 175, 55, 0.16) 0%,
+    rgba(212, 175, 55, 0.09) 35%,
+    rgba(243, 229, 171, 0.05) 60%,
+    rgba(212, 175, 55, 0.02) 80%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity;
+  filter: blur(15px);
+}
+
+.ceo-portrait-frame:hover .ceo-hover-glow {
+  opacity: 1;
+}
+
+/* Secondary glow layer - Small soft spread */
+.ceo-hover-glow::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(
+    circle 260px at calc(var(--ceo-glow-x, 50%) * 1px) calc(var(--ceo-glow-y, 50%) * 1px),
+    rgba(243, 229, 171, 0.10) 0%,
+    rgba(212, 175, 55, 0.05) 50%,
+    transparent 100%
+  );
+  mix-blend-mode: lighten;
+  opacity: 0;
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  filter: blur(25px);
+  pointer-events: none;
+}
+
+.ceo-portrait-frame:hover .ceo-hover-glow::before {
+  opacity: 0.7;
+}
+
+/* Subtle shimmer effect on hover */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(30deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(30deg);
+    opacity: 0;
+  }
+}
+
+.ceo-portrait-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 47%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(212, 175, 55, 0.06) 52%,
+    transparent 55%,
+    transparent 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.ceo-portrait-frame:hover::after {
+  animation: shimmer-sweep 4.5s ease-in-out infinite;
+}
+
+/* On mobile & tablet viewports (<1024px) and touch devices, remove all effects */
 @media (max-width: 1023px), (hover: none) {
   .crest-brush-aura,
-  .crest-brush-reveal {
+  .crest-brush-reveal,
+  .ceo-hover-glow {
+    display: none !important;
+  }
+  
+  .ceo-portrait-frame:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    transform: none;
+  }
+  
+  .ceo-portrait-frame:hover img {
+    transform: none;
+    filter: brightness(1.02) contrast(1.03);
+  }
+  
+  .ceo-portrait-frame::after {
     display: none !important;
   }
 }

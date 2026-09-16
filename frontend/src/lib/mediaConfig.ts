@@ -13,12 +13,27 @@ export function getMediaUrl(path: string): string {
   if (CDN_BASE_URL) {
     return `${CDN_BASE_URL}${normalizedPath}`;
   }
+  
+  // In production, ensure absolute path resolution
+  if (typeof window !== 'undefined') {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}${normalizedPath}`;
+  }
+  
   return normalizedPath;
 }
 
 /**
  * Returns optimized All-Intra video URL for desktop web view.
+ * Ensures proper CORS and cache headers for deployment.
  */
 export function getVideoUrl(_isMobile = false): string {
-  return getMediaUrl('/video/hero_sequence.mp4');
+  const videoPath = getMediaUrl('/video/hero_sequence.mp4');
+  
+  // Add cache-busting parameter only in development
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    return `${videoPath}?v=${Date.now()}`;
+  }
+  
+  return videoPath;
 }

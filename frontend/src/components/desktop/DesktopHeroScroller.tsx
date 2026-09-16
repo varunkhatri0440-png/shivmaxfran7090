@@ -24,6 +24,12 @@ export default function DesktopHeroScroller({
   isPaused = false,
 }: DesktopHeroScrollerProps) {
   const [videoSrc] = useState<string>(() => getVideoUrl(false));
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're in client-side environment
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -83,8 +89,16 @@ export default function DesktopHeroScroller({
       right.height = main.height;
     }
 
-    leftCtx.drawImage(main, 0, 0);
-    rightCtx.drawImage(main, 0, 0);
+    // Clear canvases before copying to prevent frame artifacts
+    leftCtx.clearRect(0, 0, left.width, left.height);
+    rightCtx.clearRect(0, 0, right.width, right.height);
+    
+    try {
+      leftCtx.drawImage(main, 0, 0);
+      rightCtx.drawImage(main, 0, 0);
+    } catch (e) {
+      console.warn('Split canvas sync error:', e);
+    }
   }, []);
 
   const drawVideoFrame = useCallback(() => {
@@ -97,7 +111,20 @@ export default function DesktopHeroScroller({
 
     const { x, y, w, h } = drawRectRef.current;
     if (w > 0 && h > 0) {
-      ctx.drawImage(video, x, y, w, h);
+      // Clear canvas before drawing to prevent frame persistence issues
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Fill with black background for letterbox areas
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw the video frame
+      try {
+        ctx.drawImage(video, x, y, w, h);
+      } catch (e) {
+        // Silently handle potential CORS or decode errors in production
+        console.warn('Frame draw error:', e);
+      }
     }
   }, []);
 
@@ -149,6 +176,7 @@ export default function DesktopHeroScroller({
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    // Clamp DPR for better production performance and memory usage
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const targetWidth = Math.round(vw * dpr);
@@ -157,6 +185,13 @@ export default function DesktopHeroScroller({
     if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
       canvas.width = targetWidth;
       canvas.height = targetHeight;
+      
+      // Reset canvas context properties after resize
+      const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+      }
     }
 
     const vidW = video && video.videoWidth > 0 ? video.videoWidth : 1920;
@@ -182,8 +217,11 @@ export default function DesktopHeroScroller({
 
     drawRectRef.current = { x: drawX, y: drawY, w: drawW, h: drawH };
 
-    drawVideoFrame();
-    syncSplitCanvases();
+    // Force immediate redraw after dimension update
+    requestAnimationFrame(() => {
+      drawVideoFrame();
+      syncSplitCanvases();
+    });
   }, [drawVideoFrame, syncSplitCanvases]);
 
   const handleResize = useCallback(() => {
@@ -238,7 +276,9 @@ export default function DesktopHeroScroller({
 
     try {
       video.currentTime = 0.001;
-    } catch {}
+    } catch (e) {
+      console.warn('Initial seek failed:', e);
+    }
 
     if (onLoadProgress) {
       onLoadProgress(30, false);
@@ -246,7 +286,11 @@ export default function DesktopHeroScroller({
   }, [onLoadProgress, updateCachedDimensions]);
 
   const handleCanPlay = useCallback(() => {
-    drawVideoFrame();
+    // Force initial frame draw on canplay event
+    requestAnimationFrame(() => {
+      drawVideoFrame();
+    });
+    
     if (onLoadProgress) {
       onLoadProgress(100, true);
     }
@@ -430,28 +474,37 @@ export default function DesktopHeroScroller({
   return (
     <>
       {/* 1. Desktop Hardware-Accelerated Video Stream */}
-      <video
-        ref={videoRef}
-        src={videoSrc}
-        preload="metadata"
-        muted
-        playsInline
-        aria-hidden="true"
-        onLoadedMetadata={handleLoadedMetadata}
-        onCanPlay={handleCanPlay}
-        onProgress={handleProgress}
-        onSeeked={handleSeeked}
-        className="fixed opacity-0 pointer-events-none -z-50"
-        style={{
-          position: 'fixed',
-          left: -9999,
-          top: -9999,
-          width: 4,
-          height: 4,
-          opacity: 0,
-          pointerEvents: 'none',
-        }}
-      />
+      {isClient && (
+        <video
+          ref={videoRef}
+          src={videoSrc}
+          preload="auto"
+          muted
+          playsInline
+          aria-hidden="true"
+          crossOrigin="anonymous"
+          onLoadedMetadata={handleLoadedMetadata}
+          onCanPlay={handleCanPlay}
+          onProgress={handleProgress}
+          onSeeked={handleSeeked}
+          onLoadedData={() => {
+            // Additional fallback to ensure first frame is drawn
+            requestAnimationFrame(() => {
+              drawVideoFrame();
+            });
+          }}
+          className="fixed opacity-0 pointer-events-none -z-50"
+          style={{
+            position: 'fixed',
+            left: -9999,
+            top: -9999,
+            width: 4,
+            height: 4,
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
 
       {/* 2. Portal Reveal Layer */}
       <PortalRevealLayer portalLayerRef={portalLayerRef} />
@@ -479,61 +532,63 @@ export default function DesktopHeroScroller({
       </svg>
 
       {/* 4. Canvas Layers Container (Desktop Web View) */}
-      <div className="fixed inset-0 pointer-events-none z-[15] overflow-hidden select-none">
-        {/* Main Canvas */}
-        <div
-          ref={mainCanvasWrapperRef}
-          className="absolute inset-0 w-full h-full"
-          style={{ display: 'block' }}
-        >
-          <canvas
-            ref={mainCanvasRef}
-            className="w-full h-full object-cover block"
-            style={{
-              width: '100vw',
-              height: '100dvh',
-              willChange: 'contents',
-              transform: 'translateZ(0)',
-            }}
-          />
-        </div>
-
-        {/* Dual Parting Doors (Split range 0.78 to 0.98) */}
-        <div
-          ref={splitDoorsWrapperRef}
-          className="absolute inset-0 w-full h-full overflow-hidden"
-          style={{ display: 'none', perspective: '1400px' }}
-        >
-          {/* Left Door */}
+      {isClient && (
+        <div className="fixed inset-0 pointer-events-none z-[15] overflow-hidden select-none">
+          {/* Main Canvas */}
           <div
-            ref={leftDoorRef}
-            className="absolute top-0 left-0 w-1/2 h-full overflow-hidden will-change-transform border-none outline-none"
-            style={{ transform: 'translateX(0%)', transformOrigin: 'left center' }}
+            ref={mainCanvasWrapperRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ display: 'block' }}
           >
             <canvas
-              ref={leftCanvasRef}
-              className="absolute top-0 left-0 block border-none outline-none"
-              style={{ width: '200%', height: '100%' }}
+              ref={mainCanvasRef}
+              className="w-full h-full object-cover block"
+              style={{
+                width: '100vw',
+                height: '100dvh',
+                willChange: 'contents',
+                transform: 'translateZ(0)',
+              }}
             />
           </div>
 
-          {/* Right Door */}
+          {/* Dual Parting Doors (Split range 0.78 to 0.98) */}
           <div
-            ref={rightDoorRef}
-            className="absolute top-0 left-1/2 w-1/2 h-full overflow-hidden will-change-transform border-none outline-none"
-            style={{ transform: 'translateX(0%)', transformOrigin: 'right center' }}
+            ref={splitDoorsWrapperRef}
+            className="absolute inset-0 w-full h-full overflow-hidden"
+            style={{ display: 'none', perspective: '1400px' }}
           >
-            <canvas
-              ref={rightCanvasRef}
-              className="absolute top-0 left-[-100%] block border-none outline-none"
-              style={{ width: '200%', height: '100%' }}
-            />
-          </div>
-        </div>
+            {/* Left Door */}
+            <div
+              ref={leftDoorRef}
+              className="absolute top-0 left-0 w-1/2 h-full overflow-hidden will-change-transform border-none outline-none"
+              style={{ transform: 'translateX(0%)', transformOrigin: 'left center' }}
+            >
+              <canvas
+                ref={leftCanvasRef}
+                className="absolute top-0 left-0 block border-none outline-none"
+                style={{ width: '200%', height: '100%' }}
+              />
+            </div>
 
-        {/* Top Gradient for header legibility */}
-        <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 via-black/10 to-transparent pointer-events-none z-20" />
-      </div>
+            {/* Right Door */}
+            <div
+              ref={rightDoorRef}
+              className="absolute top-0 left-1/2 w-1/2 h-full overflow-hidden will-change-transform border-none outline-none"
+              style={{ transform: 'translateX(0%)', transformOrigin: 'right center' }}
+            >
+              <canvas
+                ref={rightCanvasRef}
+                className="absolute top-0 left-[-100%] block border-none outline-none"
+                style={{ width: '200%', height: '100%' }}
+              />
+            </div>
+          </div>
+
+          {/* Top Gradient for header legibility */}
+          <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 via-black/10 to-transparent pointer-events-none z-20" />
+        </div>
+      )}
     </>
   );
 }

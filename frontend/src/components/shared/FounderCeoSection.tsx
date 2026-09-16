@@ -6,7 +6,6 @@ import {
   MapPin,
   Sparkles,
 } from 'lucide-react';
-import ShivmaxCrest from './ShivmaxCrest';
 import '../../styles/crest.css';
 
 interface FounderCeoSectionProps {
@@ -17,31 +16,52 @@ export default function FounderCeoSection({
   onApply: _onApply,
 }: FounderCeoSectionProps) {
   const watermarkRef = React.useRef<HTMLDivElement>(null);
+  const ceoImageRef = React.useRef<HTMLDivElement>(null);
 
   const rafMoveRef = React.useRef<number | null>(null);
+  const rafCeoRef = React.useRef<number | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
-    if (!watermarkRef.current) return;
-    const clientX = e.clientX;
-    const clientY = e.clientY;
-    if (rafMoveRef.current) cancelAnimationFrame(rafMoveRef.current);
-    rafMoveRef.current = requestAnimationFrame(() => {
-      if (!watermarkRef.current) return;
-      const watermarkRect = watermarkRef.current.getBoundingClientRect();
-      const x = clientX - watermarkRect.left;
-      const y = clientY - watermarkRect.top;
-      watermarkRef.current.style.setProperty('--brush-x', `${x}px`);
-      watermarkRef.current.style.setProperty('--brush-y', `${y}px`);
-      watermarkRef.current.style.setProperty('--brush-opacity', '1');
-    });
+    
+    // Watermark brush effect
+    if (watermarkRef.current) {
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      if (rafMoveRef.current) cancelAnimationFrame(rafMoveRef.current);
+      rafMoveRef.current = requestAnimationFrame(() => {
+        if (!watermarkRef.current) return;
+        const watermarkRect = watermarkRef.current.getBoundingClientRect();
+        const x = clientX - watermarkRect.left;
+        const y = clientY - watermarkRect.top;
+        watermarkRef.current.style.setProperty('--brush-x', `${x}px`);
+        watermarkRef.current.style.setProperty('--brush-y', `${y}px`);
+        watermarkRef.current.style.setProperty('--brush-opacity', '1');
+      });
+    }
+
+    // CEO image hover glow effect
+    if (ceoImageRef.current) {
+      const rect = ceoImageRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      if (rafCeoRef.current) cancelAnimationFrame(rafCeoRef.current);
+      rafCeoRef.current = requestAnimationFrame(() => {
+        if (!ceoImageRef.current) return;
+        ceoImageRef.current.style.setProperty('--ceo-glow-x', `${x}px`);
+        ceoImageRef.current.style.setProperty('--ceo-glow-y', `${y}px`);
+      });
+    }
   };
 
   const handleMouseLeave = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
     if (rafMoveRef.current) cancelAnimationFrame(rafMoveRef.current);
-    if (!watermarkRef.current) return;
-    watermarkRef.current.style.setProperty('--brush-opacity', '0');
+    if (rafCeoRef.current) cancelAnimationFrame(rafCeoRef.current);
+    if (watermarkRef.current) {
+      watermarkRef.current.style.setProperty('--brush-opacity', '0');
+    }
   };
 
   return (
@@ -58,22 +78,30 @@ export default function FounderCeoSection({
       <div className="hidden md:block absolute top-1/4 left-10 w-[700px] h-[700px] bg-radial from-[#d4af37]/12 via-[#997a22]/4 to-transparent blur-[160px] pointer-events-none" />
       <div className="hidden md:block absolute bottom-10 right-10 w-[600px] h-[600px] bg-radial from-[#fbf5b7]/6 via-[#d4af37]/2 to-transparent blur-[150px] pointer-events-none" />
 
-      {/* Background Crest Watermark (Centered & Grand with Interactive Brush Glow) */}
+      {/* Background Logo Watermark (Centered & Grand with Interactive Brush Glow) - Desktop Only */}
       <div
         ref={watermarkRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] sm:w-[1350px] lg:w-[1550px] aspect-[6047/6997] max-w-none pointer-events-none z-[1]"
+        className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] sm:w-[1350px] lg:w-[1550px] aspect-square max-w-none pointer-events-none z-[1]"
       >
-        {/* Layer 1: Base Architectural Watermark (Kept in low lighting for both mobile & desktop) */}
+        {/* Layer 1: Base Logo Watermark (Low lighting) */}
         <div className="absolute inset-0 opacity-[0.048] flex items-center justify-center pointer-events-none">
-          <ShivmaxCrest className="w-full h-full object-contain" />
+          <img 
+            src="/logo/shivmax-crest-transparent.png" 
+            alt="" 
+            className="w-full h-full object-contain"
+          />
         </div>
 
-        {/* Layer 2: Ambient Golden Brush Glow Aura (Desktop only, removed on mobile to eliminate lag) */}
-        <div className="crest-brush-aura hidden md:block absolute inset-0 pointer-events-none rounded-full" />
+        {/* Layer 2: Ambient Golden Brush Glow Aura (Desktop only) */}
+        <div className="crest-brush-aura absolute inset-0 pointer-events-none rounded-full" />
 
-        {/* Layer 3: Illuminated Crest Revealed by Brush (Desktop only, removed on mobile to eliminate lag) */}
-        <div className="crest-brush-reveal hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
-          <ShivmaxCrest className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(212,175,55,0.45)]" />
+        {/* Layer 3: Illuminated Logo Revealed by Brush (Desktop only) */}
+        <div className="crest-brush-reveal absolute inset-0 flex items-center justify-center pointer-events-none">
+          <img 
+            src="/logo/shivmax-crest-transparent.png" 
+            alt="" 
+            className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(212,175,55,0.45)]"
+          />
         </div>
       </div>
 
@@ -108,16 +136,22 @@ export default function FounderCeoSection({
           <div className="lg:col-span-5 flex flex-col items-center">
             <div className="w-full max-w-[460px] space-y-5 pointer-events-auto">
               
-              {/* Clean Museum-Grade Executive Portrait Frame */}
-              <div className="relative rounded-2xl overflow-hidden border border-white/[0.12] hover:border-[#d4af37]/40 transition-all duration-500 shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-[#0a0d14] group">
+              {/* Clean Museum-Grade Executive Portrait Frame with Enhanced Hover Glow */}
+              <div 
+                ref={ceoImageRef}
+                className="relative rounded-2xl overflow-hidden border border-white/[0.12] transition-all duration-700 shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-[#0a0d14] group ceo-portrait-frame"
+              >
                 <img
                   src="/images/ceo-portrait.jpg"
                   alt="Mr. Vivekkumar Mishra - Founder & CEO of Shivmax Real Estate Private Limited"
-                  className="w-full h-[520px] sm:h-[580px] object-cover object-top filter brightness-[1.02] contrast-[1.03] group-hover:scale-102 transition-transform duration-700 ease-out"
+                  className="w-full h-[520px] sm:h-[580px] object-cover object-top filter brightness-[1.02] contrast-[1.03] transition-all duration-700 ease-out"
                 />
 
                 {/* Natural, subtle cinematic base vignette */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+
+                {/* Enhanced cursor-following glow effect (Desktop only) */}
+                <div className="ceo-hover-glow hidden lg:block absolute inset-0 pointer-events-none" />
               </div>
 
               {/* Distinguished Executive Caption (Forbes / WSJ Editorial Style) */}
