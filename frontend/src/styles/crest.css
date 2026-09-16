@@ -1,0 +1,53 @@
+/* ==========================================================================
+   SHIVMAX SOVEREIGN CREST - LUMINOUS BRUSH GLOW EFFECT
+   Illuminates the crest dynamically under the cursor like a soft golden
+   light brush. Fully hardware-accelerated for smooth 60-120fps on all devices.
+   ========================================================================== */
+
+/* Ambient golden brush glow aura */
+.crest-brush-aura {
+  opacity: var(--brush-opacity, 0);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(
+    circle 280px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(212, 175, 55, 0.14) 0%,
+    rgba(212, 175, 55, 0.05) 45%,
+    transparent 100%
+  );
+  will-change: opacity;
+}
+
+/* Luminous crest layer revealed smoothly under the brush */
+.crest-brush-reveal {
+  opacity: var(--brush-opacity, 0);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  mask-image: radial-gradient(
+    circle 240px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 35%,
+    rgba(0, 0, 0, 0.25) 70%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle 240px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 35%,
+    rgba(0, 0, 0, 0.25) 70%,
+    transparent 100%
+  );
+  will-change: opacity;
+}
+
+.crest-brush-reveal img,
+.crest-brush-reveal svg {
+  opacity: 0.95;
+  filter: brightness(1.22) contrast(1.15);
+}
+
+/* On mobile & tablet viewports (<1024px) and touch devices, remove the brush aura and reveal effects completely to prevent touch lag */
+@media (max-width: 1023px), (hover: none) {
+  .crest-brush-aura,
+  .crest-brush-reveal {
+    display: none !important;
+  }
+}
