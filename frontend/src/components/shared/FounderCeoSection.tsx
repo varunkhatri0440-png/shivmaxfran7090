@@ -191,14 +191,6 @@ export default function FounderCeoSection({
           {/* RIGHT COLUMN: TRANSPARENT EDITORIAL DOSSIER (7 COLS)               */}
           {/* ------------------------------------------------------------------ */}
           <div className="lg:col-span-7 space-y-7 text-left bg-transparent">
-            
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30">
-              <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span className="text-[11px] font-cinzel font-semibold tracking-[0.24em] uppercase text-[#fbf5b7]">
-                Leadership Profile &bull; Strategic Directive
-              </span>
-            </div>
 
             {/* Title */}
             <h3 className="text-2xl sm:text-4xl lg:text-[42px] font-serif text-white font-normal leading-[1.25] tracking-tight">

@@ -138,17 +138,6 @@ export default function DesktopHorizontalMatrix({
                             {audience.headlineBenefit}
                           </p>
                         </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={() => jumpToPanel(3)}
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs font-semibold tracking-widest uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(212,175,55,0.4)] cursor-pointer"
-                          >
-                            <span>Apply for This Profile</span>
-                            <ChevronRight className="w-4 h-4 text-black" />
-                          </button>
-                        </div>
                       </div>
 
                       {/* Right Column: 4 Tailored Pillars */}

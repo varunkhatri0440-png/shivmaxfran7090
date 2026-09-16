@@ -149,14 +149,6 @@ export default function MobileAudienceSection() {
             </div>
           ))}
         </div>
-
-        <button
-          onClick={scrollToApply}
-          className="w-full py-3 rounded-full text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] shadow-[0_0_20px_rgba(212,175,55,0.35)] flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all"
-        >
-          <span>Apply for This Profile</span>
-          <ChevronRight className="w-4 h-4 text-black" />
-        </button>
       </div>
 
       {/* Embedded Mobile Franchise Application Form */}
