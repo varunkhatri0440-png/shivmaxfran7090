@@ -58,25 +58,37 @@ input[type='range'] {
 /* Hardware acceleration for full-bleed canvas scroller */
 canvas {
   touch-action: pan-y;
+  /* Optimize canvas rendering quality */
   image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  image-rendering: high-quality;
+  /* Force GPU layer promotion */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  /* Force GPU compositing for smoother frame rendering */
+  /* Hint compositor about changes */
   will-change: contents;
-  /* Prevent canvas from being anti-aliased incorrectly */
-  -ms-interpolation-mode: nearest-neighbor;
+  /* Prevent subpixel rendering issues */
+  -webkit-font-smoothing: subpixel-antialiased;
+  /* Optimize compositing */
+  contain: layout style paint;
+  /* Force hardware acceleration */
+  -webkit-perspective: 1000;
+  perspective: 1000;
 }
 
 /* Desktop-specific canvas optimizations */
 @media (min-width: 1280px) {
   canvas {
+    /* Maximum quality on desktop */
+    image-rendering: -webkit-optimize-contrast;
     image-rendering: high-quality;
+    /* Ensure smooth rendering */
     -webkit-font-smoothing: subpixel-antialiased;
-    /* Ensure proper layering and compositing */
-    contain: layout style paint;
+    /* Optimize layering and memory usage */
+    contain: layout style paint size;
+    /* Enable hardware decoding */
+    content-visibility: auto;
   }
 }
 
