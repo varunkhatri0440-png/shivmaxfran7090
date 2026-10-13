@@ -16,7 +16,7 @@ type WindowWithLenis = Window & {
 };
 
 export default function ShivmaxAdvantageBreakdown({
-  onApply,
+  onApply: _onApply,
 }: ShivmaxAdvantageBreakdownProps) {
   const [activePillar, setActivePillar] = useState<number>(0);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -374,27 +374,18 @@ export default function ShivmaxAdvantageBreakdown({
                 >
                   <div className="w-full max-w-[1360px] max-h-[calc(100vh-175px)] sm:max-h-[calc(100vh-200px)] overflow-y-auto rounded-3xl bg-gradient-to-b from-[#0a0d14] via-[#07090f] to-[#090c12] border border-white/[0.1] p-5 sm:p-7 lg:p-9 shadow-[0_30px_80px_rgba(0,0,0,0.8)] xl:backdrop-blur-2xl">
                     {/* Header of Pillar */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-mono font-semibold tracking-[0.25em] text-[#d4af37] uppercase">
-                            Pillar {pillar.number} of 03
-                          </span>
-                        </div>
-                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif text-white font-normal">
-                          {pillar.title}
-                        </h3>
-                        <p className="mt-1 text-xs sm:text-[13px] text-[#94a3b8] max-w-2xl font-light leading-relaxed">
-                          {pillar.summary}
-                        </p>
+                    <div className="pb-4 border-b border-white/[0.08]">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[11px] font-mono font-semibold tracking-[0.25em] text-[#d4af37] uppercase">
+                          Pillar {pillar.number} of 03
+                        </span>
                       </div>
-
-                      <button
-                        onClick={onApply}
-                        className="self-start sm:self-center px-6 py-2.5 rounded-full text-xs font-semibold tracking-[0.18em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex-shrink-0"
-                      >
-                        <span>Apply for this Model →</span>
-                      </button>
+                      <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif text-white font-normal">
+                        {pillar.title}
+                      </h3>
+                      <p className="mt-1 text-xs sm:text-[13px] text-[#94a3b8] max-w-3xl font-light leading-relaxed">
+                        {pillar.summary}
+                      </p>
                     </div>
 
                     {/* Items Detail & Impact Breakdown Grid */}
