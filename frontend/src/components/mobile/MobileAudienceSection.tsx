@@ -42,7 +42,7 @@ export default function MobileAudienceSection() {
   return (
     <section
       id="who-benefits-mobile"
-      className="relative px-4 sm:px-6 md:px-10 py-16 sm:py-20 space-y-12 overflow-hidden bg-[#050608] border-t border-white/[0.08]"
+      className="relative px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 pb-28 sm:pb-36 space-y-12 overflow-x-clip overflow-y-visible bg-[#050608] border-t border-white/[0.08]"
     >
       {/* Mobile Hallmark Watermark */}
       <div className="pointer-events-none select-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] max-w-[92vw] opacity-[0.085] mix-blend-luminosity brightness-90">
@@ -144,8 +144,8 @@ export default function MobileAudienceSection() {
       </div>
 
       {/* Embedded Mobile Franchise Application Form */}
-      <div id="mobile-apply-form" className="relative z-10 max-w-xl mx-auto pt-4">
-        <div className="p-6 sm:p-8 rounded-2xl bg-[#090c12] border border-[#d4af37]/40 shadow-2xl space-y-5 text-left">
+      <div id="mobile-apply-form" className="relative z-20 max-w-xl mx-auto pt-4">
+        <div className="relative z-20 p-6 sm:p-8 rounded-2xl bg-[#090c12] border border-[#d4af37]/40 shadow-2xl space-y-5 text-left">
           <div>
             <span className="text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#d4af37] block mb-1">
               Official Franchise Application

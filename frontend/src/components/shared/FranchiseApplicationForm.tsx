@@ -168,7 +168,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         />
 
         {/* Theme-Matched Luxury Dropdown (Mobile) */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative z-30" ref={dropdownRef}>
           <button
             type="button"
             role="combobox"
@@ -188,7 +188,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
               id="mobile-category-list"
               role="listbox"
               aria-label="Profile Categories"
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/45 shadow-[0_15px_45px_rgba(0,0,0,0.95)] backdrop-blur-2xl py-1.5 overflow-hidden"
+              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[320px] overflow-y-auto overscroll-contain"
             >
               {PROFILE_CATEGORIES.map((cat) => {
                 const isSelected = formData.category === cat;
@@ -325,7 +325,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       </div>
 
       {/* Target Profile Category — Theme-Matched Luxury Dropdown */}
-      <div className="space-y-1.5" ref={dropdownRef}>
+      <div className="space-y-1.5 relative z-30" ref={dropdownRef}>
         <label id="franchise-category-label" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
           Your Profile Category *
         </label>
@@ -349,7 +349,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
               id="desktop-category-list"
               role="listbox"
               aria-labelledby="franchise-category-label"
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/45 shadow-[0_15px_45px_rgba(0,0,0,0.95)] backdrop-blur-2xl py-1.5 overflow-hidden"
+              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[320px] overflow-y-auto overscroll-contain"
             >
               {PROFILE_CATEGORIES.map((cat) => {
                 const isSelected = formData.category === cat;
