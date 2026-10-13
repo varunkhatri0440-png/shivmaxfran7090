@@ -9,7 +9,7 @@ import {
   Briefcase,
   TrendingUp,
 } from 'lucide-react';
-import { audiences, navPills } from '@/components/shared/audienceData';
+import { audiences } from '@/components/shared/audienceData';
 import { useHorizontalScroll } from './useHorizontalScroll';
 import HorizontalNavPills from './HorizontalNavPills';
 import FranchiseApplicationForm from '@/components/shared/FranchiseApplicationForm';
@@ -243,17 +243,6 @@ export default function DesktopHorizontalMatrix({
             </div>
           </div>
 
-          {/* Bottom Floating Status Bar */}
-          <div className="relative z-30 px-8 lg:px-14 py-3 flex items-center justify-between text-[11px] font-mono text-slate-400 border-t border-white/[0.06] bg-[#050608]/40 backdrop-blur-md">
-            <span>Scroll vertically or use arrows / tabs to glide through the horizontal matrix</span>
-            <div className="flex items-center gap-4">
-              <span className="text-[#fbf5b7]">
-                Current: {navPills[activePanel]?.label}
-              </span>
-              <span className="text-[#d4af37]">&bull;</span>
-              <span>100% Zero-Overhead Model</span>
-            </div>
-          </div>
         </div>
       </div>
     </section>
