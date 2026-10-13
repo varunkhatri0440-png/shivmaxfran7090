@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Shield, Briefcase, TrendingUp, ChevronRight } from 'lucide-react';
+import { Sparkles, Shield, Briefcase, TrendingUp } from 'lucide-react';
 import { audiences } from '@/components/shared/audienceData';
 import FranchiseApplicationForm from '@/components/shared/FranchiseApplicationForm';
 
@@ -32,13 +32,6 @@ export default function MobileAudienceSection() {
     }
     if (isRightSwipe && activeIdx > 0) {
       setActiveIdx((prev) => prev - 1);
-    }
-  };
-
-  const scrollToApply = () => {
-    const el = document.getElementById('mobile-apply-form');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -84,11 +77,10 @@ export default function MobileAudienceSection() {
           <button
             key={aud.id}
             onClick={() => setActiveIdx(idx)}
-            className={`min-h-[48px] p-2.5 rounded-xl border text-center transition-all cursor-pointer select-none active:scale-[0.97] flex flex-col items-center justify-center ${
-              activeIdx === idx
+            className={`min-h-[48px] p-2.5 rounded-xl border text-center transition-all cursor-pointer select-none active:scale-[0.97] flex flex-col items-center justify-center ${activeIdx === idx
                 ? 'bg-gradient-to-b from-[#1c1608] to-[#0a0d14] border-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.3)]'
                 : 'bg-white/[0.03] border-white/[0.08] text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-mono block text-[#d4af37] font-semibold">0{idx + 1}</span>
             <span className="text-xs font-serif font-medium truncate block w-full mt-0.5">
@@ -115,7 +107,7 @@ export default function MobileAudienceSection() {
           <h3 className="text-2xl font-serif text-white">
             {activeAudience.title}
           </h3>
-          <p className="text-sm font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text">
+          <p className="text-sm font-serif text-[#fbf5b7] font-normal leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
             {activeAudience.tagline}
           </p>
         </div>
@@ -159,10 +151,10 @@ export default function MobileAudienceSection() {
               Official Franchise Application
             </span>
             <h3 className="text-xl sm:text-2xl font-serif text-white">
-              Directorate Evaluation Portal
+              Franchise Application Desk
             </h3>
             <p className="text-xs text-slate-300 font-light mt-1">
-              Reviewed directly by Mr. Vivekkumar Mishra. Direct response within 24 hours.
+              Reviewed directly by Mr. Vivek Mishra. Quick response within 24 hours.
             </p>
           </div>
 

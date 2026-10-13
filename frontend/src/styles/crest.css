@@ -6,16 +6,16 @@
 /* Primary ambient golden brush glow aura - Small and focused */
 .crest-brush-aura {
   opacity: var(--brush-opacity, 0);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   background: radial-gradient(
-    circle 200px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(212, 175, 55, 0.12) 0%,
-    rgba(212, 175, 55, 0.06) 40%,
-    rgba(212, 175, 55, 0.02) 70%,
+    circle 240px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(212, 175, 55, 0.20) 0%,
+    rgba(212, 175, 55, 0.10) 35%,
+    rgba(212, 175, 55, 0.03) 65%,
     transparent 100%
   );
   will-change: opacity;
-  filter: blur(20px);
+  pointer-events: none;
 }
 
 /* Secondary glow ring - Very small and subtle */
@@ -24,43 +24,44 @@
   position: absolute;
   inset: 0;
   opacity: var(--brush-opacity, 0);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   background: radial-gradient(
-    circle 160px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(243, 229, 171, 0.08) 0%,
-    rgba(212, 175, 55, 0.03) 50%,
+    circle 180px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(251, 245, 183, 0.14) 0%,
+    rgba(212, 175, 55, 0.05) 50%,
     transparent 100%
   );
-  filter: blur(25px);
   mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 /* Enhanced luminous crest layer revealed smoothly under the brush */
 .crest-brush-reveal {
   opacity: var(--brush-opacity, 0);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   mask-image: radial-gradient(
-    circle 180px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0.5) 35%,
-    rgba(0, 0, 0, 0.25) 65%,
-    rgba(0, 0, 0, 0.08) 85%,
+    circle 220px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 30%,
+    rgba(0, 0, 0, 0.45) 60%,
+    rgba(0, 0, 0, 0.1) 85%,
     transparent 100%
   );
   -webkit-mask-image: radial-gradient(
-    circle 180px at var(--brush-x, 50%) var(--brush-y, 50%),
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0.5) 35%,
-    rgba(0, 0, 0, 0.25) 65%,
-    rgba(0, 0, 0, 0.08) 85%,
+    circle 220px at var(--brush-x, 50%) var(--brush-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 30%,
+    rgba(0, 0, 0, 0.45) 60%,
+    rgba(0, 0, 0, 0.1) 85%,
     transparent 100%
   );
   will-change: opacity;
+  pointer-events: none;
 }
 
 .crest-brush-reveal img {
-  opacity: 0.8;
-  filter: brightness(1.12) contrast(1.06);
+  opacity: 1;
+  filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.55)) brightness(1.2) contrast(1.08);
 }
 
 /* ==========================================================================
@@ -91,17 +92,16 @@
 .ceo-hover-glow {
   background: radial-gradient(
     circle 220px at var(--ceo-glow-x, 50%) var(--ceo-glow-y, 50%),
-    rgba(212, 175, 55, 0.16) 0%,
-    rgba(212, 175, 55, 0.09) 35%,
+    rgba(212, 175, 55, 0.20) 0%,
+    rgba(212, 175, 55, 0.10) 35%,
     rgba(243, 229, 171, 0.05) 60%,
-    rgba(212, 175, 55, 0.02) 80%,
     transparent 100%
   );
   mix-blend-mode: screen;
   opacity: 0;
-  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity;
-  filter: blur(15px);
+  pointer-events: none;
 }
 
 .ceo-portrait-frame:hover .ceo-hover-glow {
@@ -112,17 +112,16 @@
 .ceo-hover-glow::before {
   content: '';
   position: absolute;
-  inset: -30px;
+  inset: -20px;
   background: radial-gradient(
-    circle 260px at calc(var(--ceo-glow-x, 50%) * 1px) calc(var(--ceo-glow-y, 50%) * 1px),
-    rgba(243, 229, 171, 0.10) 0%,
+    circle 260px at var(--ceo-glow-x, 50%) var(--ceo-glow-y, 50%),
+    rgba(243, 229, 171, 0.12) 0%,
     rgba(212, 175, 55, 0.05) 50%,
     transparent 100%
   );
   mix-blend-mode: lighten;
   opacity: 0;
-  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
-  filter: blur(25px);
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
 

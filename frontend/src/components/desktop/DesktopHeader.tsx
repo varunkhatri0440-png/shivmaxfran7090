@@ -12,26 +12,38 @@ export default function DesktopHeader({ onOpenBooking: _onOpenBooking }: Desktop
 
   useEffect(() => {
     let ticking = false;
+    let cachedDocHeight = 1;
+
+    const updateDocHeight = () => {
+      cachedDocHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    };
+
+    updateDocHeight();
+
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
 
       requestAnimationFrame(() => {
         ticking = false;
-        const nextScrolled = window.scrollY > 50;
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const nextScrolled = scrollY > 50;
         setScrolled((prev) => (prev !== nextScrolled ? nextScrolled : prev));
 
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        if (docHeight > 0 && progressLineRef.current) {
-          const pct = Math.min(100, Math.max(0, (window.scrollY / docHeight) * 100));
-          progressLineRef.current.style.width = `${pct}%`;
+        if (progressLineRef.current) {
+          const ratio = Math.min(1, Math.max(0, scrollY / cachedDocHeight));
+          progressLineRef.current.style.transform = `scaleX(${ratio})`;
         }
       });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', updateDocHeight);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateDocHeight);
+    };
   }, []);
 
   const scrollTo = (id: string) => {
@@ -91,8 +103,8 @@ export default function DesktopHeader({ onOpenBooking: _onOpenBooking }: Desktop
       {/* Top 24K Gold Laser Scroll Progress Line */}
       <div
         ref={progressLineRef}
-        className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-[#997a22] via-[#d4af37] to-[#fbf5b7] shadow-[0_0_10px_rgba(212,175,55,0.7)] pointer-events-none"
-        style={{ width: '0%' }}
+        className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#997a22] via-[#d4af37] to-[#fbf5b7] shadow-[0_0_10px_rgba(212,175,55,0.7)] pointer-events-none will-change-transform"
+        style={{ transformOrigin: 'left center', transform: 'scaleX(0)' }}
       />
 
       <div className="w-full px-8 lg:px-14 flex items-center justify-between">
@@ -117,19 +129,14 @@ export default function DesktopHeader({ onOpenBooking: _onOpenBooking }: Desktop
         </div>
 
         {/* Minimalist Desktop Web Navigation */}
-        <nav className="flex items-center gap-5 xl:gap-8">
+        <nav aria-label="Main Navigation" className="flex items-center gap-5 xl:gap-8">
           <button
             onClick={() => scrollTo('hero-pinned-track')}
             className="text-[10px] uppercase tracking-[0.2em] text-[#94a3b8] hover:text-[#f5e6ba] transition-colors cursor-pointer whitespace-nowrap"
           >
             The Advantage
           </button>
-          <button
-            onClick={() => scrollTo('commitments')}
-            className="text-[10px] uppercase tracking-[0.2em] text-[#94a3b8] hover:text-[#f5e6ba] transition-colors cursor-pointer whitespace-nowrap"
-          >
-            5 Commitments
-          </button>
+
           <button
             onClick={() => scrollTo('advantage-breakdown')}
             className="text-[10px] uppercase tracking-[0.2em] text-[#94a3b8] hover:text-[#f5e6ba] transition-colors cursor-pointer whitespace-nowrap"

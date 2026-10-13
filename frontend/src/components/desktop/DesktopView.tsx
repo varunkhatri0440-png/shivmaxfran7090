@@ -5,7 +5,6 @@ import DesktopHeroScroller from './DesktopHeroScroller';
 import DesktopHeader from './DesktopHeader';
 import DesktopHeroPrologue from './DesktopHeroPrologue';
 import DesktopHorizontalMatrix from './DesktopHorizontalMatrix';
-import ZeroOverheadCommitment from '@/components/shared/ZeroOverheadCommitment';
 import ShivmaxAdvantageBreakdown from '@/components/shared/ShivmaxAdvantageBreakdown';
 import FounderCeoSection from '@/components/shared/FounderCeoSection';
 import LuxuryFooter from '@/components/shared/LuxuryFooter';
@@ -73,13 +72,10 @@ export default function DesktopView() {
 
       {/* Main Content Sections (Stacked on top of hero portal) */}
       <div className="relative z-30 bg-[#050608]">
-        {/* 2. Our Commitment — The Zero-Overhead Launch (5 Pillars) */}
-        <ZeroOverheadCommitment onApply={handleOpenBooking} />
-
-        {/* 3. The Shivmax Advantage (Detailed Breakdown: 3 In-Depth Pillars) */}
+        {/* 2. The Shivmax Advantage (Detailed Breakdown: 3 In-Depth Pillars) */}
         <ShivmaxAdvantageBreakdown onApply={handleOpenBooking} />
 
-        {/* 4. About the Founder & CEO: Mr. Vivekkumar Mishra */}
+        {/* 4. About the Founder & CEO: Mr. Vivek Mishra */}
         <FounderCeoSection onApply={handleOpenBooking} />
 
         {/* 5. Sovereign Horizontal Journey: Who Benefits Most & Franchise Application */}

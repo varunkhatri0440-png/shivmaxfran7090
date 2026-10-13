@@ -23,17 +23,17 @@ export default function ShivmaxAdvantageBreakdown({
         {
           item: '1 Year Office Rent Covered',
           detail:
-            'Shivmax secures and covers the entire rental expense for a prime, professional office for the full first year (365 days), including utility costs like light bills.',
+            'Shivmax covers 100% of your office rent and electricity bills in a prime location for your entire first year (365 days).',
           impact:
-            'Franchisee avoids the upfront cost of a commercial lease deposit and 12 months of rent — saving a substantial six-figure investment. Provides instant credibility and a professional client-meeting environment with zero monthly overhead pressure.',
+            'Franchisee avoids the upfront cost of a 12 months of rent — saving a substantial six-figure investment. Provides instant credibility and a professional client-meeting environment with zero monthly overhead pressure.',
           tag: 'Financial Shield',
         },
         {
-          item: 'Premium Office Interior & AC',
+          item: 'Office Interior',
           detail:
-            'No need to spend time or capital on design, furnishing, or setup. Franchisee steps into a professionally designed, fully-fitted office complete with designer furniture, fixtures, high-efficiency AC, executive desks, chairs, conference setup, and complete wiring.',
+            'You get a modern, fully furnished office ready from day one. It includes executive desks, air conditioning, and complete interiors so you can start working right away.',
           impact:
-            'Office is business-ready from day one — saves valuable time (=immediate revenue) and tens of thousands of rupees in capital fit-out costs.',
+            'Office is business-ready from day one — saves valuable time (immediate revenue).',
           tag: 'Turnkey Infrastructure',
         },
       ],
@@ -49,25 +49,25 @@ export default function ShivmaxAdvantageBreakdown({
         {
           item: '1-Year Staff Support & Salary',
           detail:
-            'Shivmax covers the full 1-year salary for dedicated support staff (e.g., office manager / coordinator / client executive) assigned directly to your franchise office.',
+            'Shivmax covers the full 1-year salary for support staff assigned directly to your franchise office.',
           impact:
-            'Frees the franchisee to focus 100% on client acquisition, high-value lead generation, and closing deals — completely eliminating payroll overhead, hiring headaches, and day-to-day administration burden.',
+            'Allows you to focus 100% on getting clients and closing deals without worrying about salaries, hiring, or daily office management.',
           tag: '100% Payroll Covered',
         },
         {
-          item: 'Elite Training Program',
+          item: 'Training Program',
           detail:
-            'Comprehensive, intensive training for the franchisee and core team — covering Indian real estate laws (RERA compliance), micro-market analysis, advanced closing techniques, and proprietary real estate CRM technology.',
+            'Intensive training for the franchisee and core team — covering Indian real estate laws , micro-market analysis, advanced closing techniques, and proprietary real estate CRM technology.',
           impact:
-            'Equips the entire team with cutting-edge domain knowledge and industry best practices for institutional-grade service delivery and superior lead-to-deal conversion rates.',
+            'Gives your entire team deep market knowledge and proven closing skills to convert more leads into profitable deals.',
           tag: 'Mastery & Conversion',
         },
         {
           item: 'Personal Handling & 1:1 Guidance',
           detail:
-            'Direct, personal mentorship from Mr. Vivek Mishra and other top-tier industry veterans, customized precisely to your local market, business challenges, and high-ticket transactions.',
+            'Direct, personal mentorship from Mr. Vivek Mishra, customized precisely to your local market, business challenges, and high-ticket transactions.',
           impact:
-            'Delivers a decisive competitive advantage — allows franchisees to scale rapidly by directly leveraging leadership’s proven decade-long track record and strategic foresight.',
+            'Helps you grow your business faster by learning directly from 10+ years of proven real estate experience and strategy.',
           tag: 'Executive Mentorship',
         },
       ],
@@ -75,18 +75,26 @@ export default function ShivmaxAdvantageBreakdown({
     {
       id: 'network-access',
       number: '03',
-      title: 'Unrivaled Network Access',
+      title: 'Profitable Network',
       shortTitle: 'Network & Inventory',
       summary:
-        'In real estate, your network is your net worth. Gain instant institutional leverage and premium project inventory.',
+        'In real estate, your network is your net worth.',
       items: [
         {
           item: 'Immediate Access to 10+ Years Curated Ecosystem',
           detail:
             'Franchisees immediately gain complete access to and leverage of all essential real estate networks, platforms, and industry partnerships that Shivmax has cultivated over 10+ years — including exclusive builder/developer project inventory, vetted legal teams, title verification desks, and advanced market data intelligence.',
           impact:
-            'Bypasses the typical years-long, arduous trust-building process. New franchisees can compete immediately with established market veterans, offering a wide, prestigious, and trusted project portfolio from Day One — critical for winning premium clients and generating large commission payouts.',
+            'Skip years of building market trust. From Day One, you can offer top projects, win high-value clients, and earn large commissions.',
           tag: 'Instant Market Dominance',
+        },
+        {
+          item: '10+ Years Experience & Network Leverage',
+          detail:
+            '10+ years of real estate experience works directly to grow your profits.',
+          impact:
+            'Every network connection built over the last decade will become the key reason behind your business success.',
+          tag: 'Immediate Leverage',
         },
       ],
     },
@@ -112,7 +120,7 @@ export default function ShivmaxAdvantageBreakdown({
           </h2>
 
           <p className="mt-6 text-sm sm:text-base text-[#cbd5e1] font-light leading-relaxed">
-            Shivmax Real Estate Private Limited has revolutionized the franchise model by making an unprecedented commitment: eliminating massive startup overhead via a 365-day support package, ensuring zero initial burden and letting franchisees focus entirely on sales and revenue generation.
+            Shivmax removes heavy startup costs with 365 days of full support. With zero initial burden, you can focus completely on closing deals and earning profits.
           </p>
         </div>
 
@@ -125,25 +133,22 @@ export default function ShivmaxAdvantageBreakdown({
               <button
                 key={p.id}
                 onClick={() => setActivePillar(idx)}
-                className={`group relative flex items-center gap-3.5 px-8 py-4 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f7e8a9] to-[#c99a2c] text-black border-[#d4af37] shadow-[0_8px_32px_rgba(212,175,55,0.35)] scale-[1.02]'
-                    : 'bg-[#0b0e15] hover:bg-[#121622] border-white/[0.1] text-slate-300 hover:text-white hover:border-[#d4af37]/45 xl:backdrop-blur-xl shadow-lg'
-                }`}
+                className={`group relative flex items-center gap-3.5 px-8 py-4 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${isActive
+                  ? 'bg-gradient-to-r from-[#d4af37] via-[#f7e8a9] to-[#c99a2c] text-black border-[#d4af37] shadow-[0_8px_32px_rgba(212,175,55,0.35)] scale-[1.02]'
+                  : 'bg-[#0b0e15] hover:bg-[#121622] border-white/[0.1] text-slate-300 hover:text-white hover:border-[#d4af37]/45 xl:backdrop-blur-xl shadow-lg'
+                  }`}
               >
                 <span
-                  className={`font-mono text-xs font-bold tracking-widest px-2.5 py-0.5 rounded-full transition-colors ${
-                    isActive
-                      ? 'bg-black/15 text-black'
-                      : 'bg-white/[0.06] text-[#d4af37] group-hover:bg-[#d4af37]/15'
-                  }`}
+                  className={`font-mono text-xs font-bold tracking-widest px-2.5 py-0.5 rounded-full transition-colors ${isActive
+                    ? 'bg-black/15 text-black'
+                    : 'bg-white/[0.06] text-[#d4af37] group-hover:bg-[#d4af37]/15'
+                    }`}
                 >
                   {p.number}
                 </span>
                 <span
-                  className={`font-serif tracking-wider ${
-                    isActive ? 'text-black font-semibold' : 'text-slate-200 font-normal'
-                  }`}
+                  className={`font-serif tracking-wider ${isActive ? 'text-black font-semibold' : 'text-slate-200 font-normal'
+                    }`}
                 >
                   {p.shortTitle}
                 </span>

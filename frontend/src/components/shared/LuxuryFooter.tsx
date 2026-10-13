@@ -3,13 +3,10 @@
 import React from 'react';
 import {
   ArrowUpRight,
-  Shield,
-  Award,
   MapPin,
   Building2,
   Phone,
   MessageCircle,
-  TrendingUp,
   Compass,
   BadgeCheck,
   Layers,
@@ -40,104 +37,19 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
   };
 
   return (
-    <footer className="relative bg-gradient-to-b from-[#090e1b] via-[#060a14] to-[#03050a] border-t border-[#1e2a40] pt-16 pb-12 px-6 sm:px-10 lg:px-16 z-10 text-white select-none overflow-hidden">
-      
+    <footer className="relative bg-gradient-to-b from-[#090e1b] via-[#060a14] to-[#03050a] border-t border-[#1e2a40] pt-14 pb-12 px-6 sm:px-10 lg:px-16 z-10 text-white select-none overflow-hidden">
+
       {/* Dual Architectural Top Threshold Lines (Titanium & Champagne) */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#8fa3bf]/30 to-transparent" />
       <div className="absolute top-[2px] left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/60 to-transparent shadow-[0_0_12px_rgba(212,175,55,0.4)]" />
 
-      <div className="max-w-[1560px] mx-auto relative z-10 space-y-14">
-        
-        {/* ==================================================================== */}
-        {/* 1. ARCHITECTURAL TRUST RIBBON (INTEGRATED TICKER - NO BOXY CARDS)     */}
-        {/* ==================================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-y border-[#182338] bg-[#070c17] xl:backdrop-blur-md rounded-xl overflow-hidden">
-          {/* Pillar 1 */}
-          <div className="p-5 lg:p-6 border-b sm:border-b-0 sm:border-r border-[#182338] hover:bg-[#0c1424]/60 transition-colors group">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#141f33] border border-[#233554] flex items-center justify-center text-[#9db2ce] group-hover:text-[#fbf5b7] group-hover:border-[#d4af37]/40 transition-all">
-                <Shield className="w-4 h-4 text-[#8fa3bf]" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#7a93b4] block">
-                  Pillar 01
-                </span>
-                <h4 className="text-xs sm:text-[13px] font-serif font-semibold text-white tracking-wide">
-                  100% Fully Funded
-                </h4>
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-400 font-light leading-relaxed pl-0.5">
-              Prime office rent, turnkey setup &amp; full 1-year staff salary 100% paid by Shivmax.
-            </p>
-          </div>
-
-          {/* Pillar 2 */}
-          <div className="p-5 lg:p-6 border-b sm:border-b-0 lg:border-r border-[#182338] hover:bg-[#0c1424]/60 transition-colors group">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#141f33] border border-[#233554] flex items-center justify-center text-[#9db2ce] group-hover:text-[#fbf5b7] group-hover:border-[#d4af37]/40 transition-all">
-                <TrendingUp className="w-4 h-4 text-[#8fa3bf]" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#7a93b4] block">
-                  Pillar 02
-                </span>
-                <h4 className="text-xs sm:text-[13px] font-serif font-semibold text-white tracking-wide">
-                  Day-One Profit Lock
-                </h4>
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-400 font-light leading-relaxed pl-0.5">
-              Zero gestation risk with instant cash-flow generation and high sales commissions.
-            </p>
-          </div>
-
-          {/* Pillar 3 */}
-          <div className="p-5 lg:p-6 border-b sm:border-b-0 sm:border-r border-[#182338] hover:bg-[#0c1424]/60 transition-colors group">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#141f33] border border-[#233554] flex items-center justify-center text-[#9db2ce] group-hover:text-[#fbf5b7] group-hover:border-[#d4af37]/40 transition-all">
-                <Award className="w-4 h-4 text-[#8fa3bf]" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#7a93b4] block">
-                  Pillar 03
-                </span>
-                <h4 className="text-xs sm:text-[13px] font-serif font-semibold text-white tracking-wide">
-                  Executive Pedigree
-                </h4>
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-400 font-light leading-relaxed pl-0.5">
-              10+ Years Curated Authority under Founder &amp; CEO Mr. Vivekkumar Mishra.
-            </p>
-          </div>
-
-          {/* Pillar 4 */}
-          <div className="p-5 lg:p-6 hover:bg-[#0c1424]/60 transition-colors group">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#141f33] border border-[#233554] flex items-center justify-center text-[#9db2ce] group-hover:text-[#fbf5b7] group-hover:border-[#d4af37]/40 transition-all">
-                <Building2 className="w-4 h-4 text-[#8fa3bf]" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#7a93b4] block">
-                  Pillar 04
-                </span>
-                <h4 className="text-xs sm:text-[13px] font-serif font-semibold text-white tracking-wide">
-                  Vadodara Sovereign HQ
-                </h4>
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-400 font-light leading-relaxed pl-0.5">
-              Flagship Alkapuri private office, Sevasi executive desk, and Bhayli hub.
-            </p>
-          </div>
-        </div>
+      <div className="max-w-[1560px] mx-auto relative z-10 space-y-12">
 
         {/* ==================================================================== */}
-        {/* 2. MAIN EDITORIAL FOUR-COLUMN DIRECTORY                                */}
+        {/* MAIN EDITORIAL FOUR-COLUMN DIRECTORY                                */}
         {/* ==================================================================== */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
-          
+
           {/* 1. BRAND IDENTITY & FOUNDER STATEMENT (4 COLS) */}
           <div className="lg:col-span-4 space-y-6 text-left">
             <div
@@ -167,7 +79,7 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
             </div>
 
             <p className="text-xs sm:text-[12.5px] text-slate-300 font-light leading-relaxed max-w-md tracking-wide">
-              Shivmax Real Estate Private Limited runs India&apos;s premier fully-funded franchise partnership. Eliminating massive startup overhead through a 365-day support package — guaranteeing profit and high commission from Day One.
+              Shivmax Real Estate Private Limited runs India&apos;s premier fully-funded franchise partnership. Eliminating massive startup overhead through a 365-day support — guaranteeing profit and high commission from Day One.
             </p>
 
             {/* Founder Pedigree Block (Clean Editorial Style) */}
@@ -175,10 +87,10 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
               <div className="flex items-center gap-3">
                 <div>
                   <div className="text-xs font-semibold text-white tracking-wide">
-                    Mr. Vivekkumar Mishra
+                    Mr. Vivek Mishra
                   </div>
                   <div className="text-[11px] text-[#9fc1e8] font-light">
-                    Founder &amp; Chief Executive Officer
+                    Founder &amp; CEO
                   </div>
                 </div>
               </div>
@@ -221,66 +133,32 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
               </span>
             </div>
 
-            <ul className="space-y-4 text-xs text-slate-300 font-light">
-              {/* HQ 1: Alkapuri */}
-              <li className="pb-3 border-b border-[#141d2e] space-y-1">
+            <div className="space-y-3.5">
+              <div className="p-4 rounded-xl bg-[#0a101f] border border-[#1b2944] space-y-2.5">
                 <div className="flex items-center justify-between text-white font-medium">
-                  <span className="text-slate-100 font-serif text-[12.5px]">
-                    Vadodara Sovereign Private Office
+                  <span className="text-slate-100 font-serif text-[13px] font-semibold tracking-wide">
+                    SHIVMAX Corporate Headquarters
                   </span>
-                  <span className="text-[8.5px] font-mono px-1.5 py-0.5 rounded bg-[#16233b] text-[#fbf5b7] border border-[#25395e] uppercase">
-                    Flagship
+                  <span className="text-[8.5px] font-mono px-1.5 py-0.5 rounded bg-[#16233b] text-[#fbf5b7] border border-[#25395e] uppercase tracking-wider font-semibold">
+                    Head Office
                   </span>
                 </div>
-                <div className="text-slate-400 text-[11px] leading-relaxed">
-                  RC Dutt Road, Alkapuri, Vadodara, Gujarat - 390007
+                <div className="text-slate-300 text-xs leading-relaxed font-light flex items-start gap-2 pt-0.5">
+                  <MapPin className="w-4 h-4 text-[#d4af37] flex-shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
+                    315, Lilleria Paramount, Manjalpur, Vadodara, Gujarat
+                  </span>
                 </div>
-                <div className="text-[10px] font-mono text-[#7a93b4]">
-                  Main Directorate &amp; Executive Boardroom
+                <div className="text-[10.5px] font-mono text-[#7a93b4] pt-2 border-t border-[#162033] flex items-center justify-between">
+                  <span>Vadodara Corporate Hub</span>
+                  <span className="text-slate-400">PAN-India</span>
                 </div>
-              </li>
+              </div>
 
-              {/* HQ 2: Sevasi */}
-              <li className="pb-3 border-b border-[#141d2e] space-y-1">
-                <div className="flex items-center justify-between text-white font-medium">
-                  <span className="text-slate-200 font-serif text-[12.5px]">
-                    Sevasi Executive Desk
-                  </span>
-                  <span className="text-[8.5px] font-mono px-1.5 py-0.5 rounded bg-[#101828] text-slate-400 border border-[#1b2a44] uppercase">
-                    Desk
-                  </span>
-                </div>
-                <div className="text-slate-400 text-[11px] leading-relaxed">
-                  Sevasi Main Road, Vadodara, Gujarat - 391101
-                </div>
-                <div className="text-[10px] font-mono text-slate-500">
-                  Investor Relations &amp; Client Consultation
-                </div>
-              </li>
-
-              {/* HQ 3: Bhayli */}
-              <li className="space-y-1">
-                <div className="flex items-center justify-between text-white font-medium">
-                  <span className="text-slate-200 font-serif text-[12.5px]">
-                    Bhayli Regional Hub
-                  </span>
-                  <span className="text-[8.5px] font-mono px-1.5 py-0.5 rounded bg-[#101828] text-slate-400 border border-[#1b2a44] uppercase">
-                    Hub
-                  </span>
-                </div>
-                <div className="text-slate-400 text-[11px] leading-relaxed">
-                  Vasna-Bhayli Corridor, Vadodara, Gujarat - 391410
-                </div>
-                <div className="text-[10px] font-mono text-slate-500">
-                  Territory Operations &amp; Expansion Center
-                </div>
-              </li>
-            </ul>
-
-            {/* Base Note */}
-            <div className="pt-2 flex items-center gap-2 text-[11px] text-slate-400 font-light">
-              <MapPin className="w-3.5 h-3.5 text-[#8fa3bf] flex-shrink-0" />
-              <span>Base: Vadodara, Gujarat (PAN-India Operations)</span>
+              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-light pl-0.5">
+                <MapPin className="w-3.5 h-3.5 text-[#8fa3bf] flex-shrink-0" />
+                <span>Base: Vadodara, Gujarat (PAN-India Operations)</span>
+              </div>
             </div>
           </div>
 
@@ -305,15 +183,7 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
                   <span className="group-hover:translate-x-0.5 transition-transform">The Shivmax Advantage</span>
                 </a>
               </li>
-              <li>
-                <a
-                  href="#commitments"
-                  className="group flex items-center gap-2 hover:text-white transition-colors"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b537a] group-hover:bg-[#8fa3bf] transition-colors" />
-                  <span className="group-hover:translate-x-0.5 transition-transform">5 Zero-Overhead Commitments</span>
-                </a>
-              </li>
+
               <li>
                 <a
                   href="#advantage-breakdown"
@@ -415,7 +285,7 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
               &ldquo;India&apos;s Trusted Brand&rdquo;
             </span>
             <span className="text-slate-600">&bull;</span>
-            
+
             {/* Elegant Back To Top Button */}
             <button
               onClick={scrollToTop}

@@ -47,19 +47,22 @@ export default function PortalRevealLayer({
         </div>
 
         {/* Monumental Welcome Title & Subtitle */}
-        <div className="space-y-2 max-w-3xl mx-auto">
+        <div className="space-y-1 sm:space-y-2 max-w-3xl mx-auto text-center">
           <h2 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-light text-white tracking-tight leading-none drop-shadow-[0_10px_40px_rgba(0,0,0,0.95)]">
             WELCOME
           </h2>
-          <p className="text-2xl sm:text-4xl lg:text-5xl font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text drop-shadow-[0_2px_20px_rgba(212,175,55,0.4)]">
-            To Shivmax Real Estate
+          <div className="flex items-center justify-center gap-3 sm:gap-4 py-0.5">
+            <span className="w-8 sm:w-16 h-[1px] bg-gradient-to-r from-transparent to-[#d4af37]/60" />
+            <span className="text-xl sm:text-2xl lg:text-3xl font-serif italic text-[#fbf5b7] lowercase tracking-wide drop-shadow-[0_2px_15px_rgba(212,175,55,0.4)]">
+              to
+            </span>
+            <span className="w-8 sm:w-16 h-[1px] bg-gradient-to-l from-transparent to-[#d4af37]/60" />
+          </div>
+          <p className="text-2xl sm:text-4xl lg:text-5xl font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text drop-shadow-[0_2px_20px_rgba(212,175,55,0.4)] leading-tight">
+            Shivmax Real Estate
           </p>
         </div>
 
-        {/* Value Proposition Description */}
-        <p className="text-xs sm:text-sm lg:text-base text-[#cbd5e1] font-light leading-relaxed max-w-2xl mx-auto tracking-wide">
-          You have arrived at India&apos;s premier fully-funded partnership. Experience 365 days of zero overhead, 100% covered office rent &amp; staff payroll, and guaranteed profit from Day One.
-        </p>
       </div>
     </div>
   );

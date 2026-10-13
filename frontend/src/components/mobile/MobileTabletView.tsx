@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import MobileHeader from './MobileHeader';
 import MobileHero from './MobileHero';
 import MobileAudienceSection from './MobileAudienceSection';
-import ZeroOverheadCommitment from '@/components/shared/ZeroOverheadCommitment';
 import ShivmaxAdvantageBreakdown from '@/components/shared/ShivmaxAdvantageBreakdown';
 import FounderCeoSection from '@/components/shared/FounderCeoSection';
 import LuxuryFooter from '@/components/shared/LuxuryFooter';
@@ -35,13 +34,10 @@ export default function MobileTabletView() {
 
       {/* Main Website Content Sections */}
       <div className="relative z-30 bg-[#050608]">
-        {/* 2. Our Commitment — The Zero-Overhead Launch (5 Pillars) */}
-        <ZeroOverheadCommitment onApply={handleOpenBooking} />
-
-        {/* 3. The Shivmax Advantage (Detailed Breakdown: 3 In-Depth Pillars) */}
+        {/* 2. The Shivmax Advantage (Detailed Breakdown: 3 In-Depth Pillars) */}
         <ShivmaxAdvantageBreakdown onApply={handleOpenBooking} />
 
-        {/* 4. About the Founder & CEO: Mr. Vivekkumar Mishra */}
+        {/* 4. About the Founder & CEO: Mr. Vivek Mishra */}
         <FounderCeoSection onApply={handleOpenBooking} />
 
         {/* 5. Mobile & Tablet Audience Matrix & Embedded Franchise Application */}

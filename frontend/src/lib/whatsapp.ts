@@ -9,7 +9,7 @@ export interface FranchiseInquiryData {
   email: string;
   city: string;
   category: string;
-  timeline: string;
+  timeline?: string;
   message?: string;
   referenceCode?: string;
 }
@@ -25,7 +25,6 @@ export function buildWhatsAppMessage(data: FranchiseInquiryData): string {
   const email = data.email.trim() || 'Not Provided';
   const city = data.city.trim() || 'Vadodara, Gujarat';
   const category = data.category.trim() || 'Salaried Professional';
-  const timeline = data.timeline.trim() || 'Immediate';
   const refCode =
     data.referenceCode ||
     `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -39,8 +38,11 @@ export function buildWhatsAppMessage(data: FranchiseInquiryData): string {
     `✉️ *Email:* ${email}`,
     `📍 *Territory:* ${city}`,
     `💼 *Profile:* ${category}`,
-    `⏱️ *Timeline:* ${timeline}`,
   ];
+
+  if (data.timeline && data.timeline.trim()) {
+    lines.push(`⏱️ *Timeline:* ${data.timeline.trim()}`);
+  }
 
   if (data.message && data.message.trim()) {
     lines.push(`📝 *Note:* "${data.message.trim()}"`);

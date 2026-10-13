@@ -47,21 +47,26 @@ async function bootstrap() {
     }),
   );
 
-  // 4. Secure CORS: Environment-driven origins with safe defaults
+  // 4. Secure CORS: Strict environment-driven origins with safe defaults
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    : [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3001',
+      ];
 
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin (curl/Postman/healthcheck) or allowed domains in production
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      // Allow requests with no origin (server-to-server/health checks) or explicitly allowed domains
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Blocked by CORS policy'));
+        callback(null, false);
       }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
 

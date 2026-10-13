@@ -35,7 +35,7 @@ export default function VideoDebugPanel() {
         try {
           const bufferedEnd = video.buffered.end(video.buffered.length - 1);
           bufferedPercent = Math.round((bufferedEnd / video.duration) * 100);
-        } catch (e) {
+        } catch (_e) {
           // Ignore
         }
       }

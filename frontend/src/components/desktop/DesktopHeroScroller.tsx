@@ -24,12 +24,7 @@ export default function DesktopHeroScroller({
   isPaused = false,
 }: DesktopHeroScrollerProps) {
   const [videoSrc] = useState<string>(() => getVideoUrl(false));
-  const [isClient, setIsClient] = useState(false);
-
-  // Ensure we're in client-side environment
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [isClient] = useState<boolean>(() => typeof window !== 'undefined');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -41,7 +36,6 @@ export default function DesktopHeroScroller({
   const leftDoorRef = useRef<HTMLDivElement | null>(null);
   const rightDoorRef = useRef<HTMLDivElement | null>(null);
   const portalLayerRef = useRef<HTMLDivElement | null>(null);
-  const feBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
 
   const currentTimeRef = useRef<number>(0);
   const targetTimeRef = useRef<number>(0);
@@ -55,8 +49,6 @@ export default function DesktopHeroScroller({
   const lastSplittingActiveRef = useRef<boolean>(false);
   const cachedMaxScrollRef = useRef<number>(1);
   const exitFadeRef = useRef<number>(1);
-  const lastDrawTimeRef = useRef<number>(0);
-  const frameSkipCounterRef = useRef<number>(0);
 
   const drawRectRef = useRef<{ x: number; y: number; w: number; h: number }>({
     x: 0,
@@ -73,6 +65,10 @@ export default function DesktopHeroScroller({
   const isHeroInViewRef = useRef<boolean>(true);
   const activeRef = useRef<boolean>(true);
 
+  const mainCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const leftCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const rightCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+
   // Sync split canvas doors with the active main frame - OPTIMIZED
   const syncSplitCanvases = useCallback(() => {
     const main = mainCanvasRef.current;
@@ -80,16 +76,22 @@ export default function DesktopHeroScroller({
     const right = rightCanvasRef.current;
     if (!main || !left || !right || main.width === 0) return;
 
-    const leftCtx = left.getContext('2d', { 
-      alpha: false, 
-      desynchronized: true,
-      willReadFrequently: false 
-    });
-    const rightCtx = right.getContext('2d', { 
-      alpha: false, 
-      desynchronized: true,
-      willReadFrequently: false 
-    });
+    if (!leftCtxRef.current) {
+      leftCtxRef.current = left.getContext('2d', { 
+        alpha: false, 
+        desynchronized: true,
+        willReadFrequently: false 
+      });
+    }
+    if (!rightCtxRef.current) {
+      rightCtxRef.current = right.getContext('2d', { 
+        alpha: false, 
+        desynchronized: true,
+        willReadFrequently: false 
+      });
+    }
+    const leftCtx = leftCtxRef.current;
+    const rightCtx = rightCtxRef.current;
     if (!leftCtx || !rightCtx) return;
 
     if (left.width !== main.width || left.height !== main.height) {
@@ -113,22 +115,28 @@ export default function DesktopHeroScroller({
     const video = videoRef.current;
     if (!canvas || !video || video.readyState < 2) return;
 
-    const ctx = canvas.getContext('2d', { 
-      alpha: false, 
-      desynchronized: true,
-      willReadFrequently: false 
-    });
+    if (!mainCtxRef.current) {
+      mainCtxRef.current = canvas.getContext('2d', { 
+        alpha: false, 
+        desynchronized: true,
+        willReadFrequently: false 
+      });
+    }
+    const ctx = mainCtxRef.current;
     if (!ctx) return;
 
     const { x, y, w, h } = drawRectRef.current;
     if (w > 0 && h > 0) {
       try {
-        // Single-pass clear and draw for better performance
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(video, x, y, w, h);
+        // Video cover optimization: if video rect fills or exceeds canvas, draw directly without fillRect
+        if (x <= 0 && y <= 0 && x + w >= canvas.width && y + h >= canvas.height) {
+          ctx.drawImage(video, x, y, w, h);
+        } else {
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, x, y, w, h);
+        }
       } catch (e) {
-        // Silently handle potential CORS or decode errors in production
         console.warn('Frame draw error:', e);
       }
     }
@@ -146,14 +154,17 @@ export default function DesktopHeroScroller({
       return;
     }
 
-    // Increase threshold to reduce seek frequency
-    if (Math.abs(video.currentTime - clampedTime) < 0.033) {
+    if (Math.abs(video.currentTime - clampedTime) < 0.012) {
       return;
     }
 
     isSeekingRef.current = true;
     try {
-      video.currentTime = clampedTime;
+      if ('fastSeek' in video && typeof (video as unknown as { fastSeek?: (t: number) => void }).fastSeek === 'function') {
+        (video as unknown as { fastSeek: (t: number) => void }).fastSeek(clampedTime);
+      } else {
+        video.currentTime = clampedTime;
+      }
     } catch {
       isSeekingRef.current = false;
     }
@@ -273,18 +284,8 @@ export default function DesktopHeroScroller({
     }
   }, [onProgress]);
 
-  // Throttled scroll handler for better performance
-  const lastScrollTimeRef = useRef<number>(0);
-  const throttledScroll = useCallback(() => {
-    const now = performance.now();
-    const timeSinceLastScroll = now - lastScrollTimeRef.current;
-    
-    // Throttle scroll measurements to max 60 FPS
-    if (timeSinceLastScroll < 16) {
-      return;
-    }
-    
-    lastScrollTimeRef.current = now;
+  // Smooth scroll handler aligned with display refresh rate
+  const onScroll = useCallback(() => {
     measureScroll();
   }, [measureScroll]);
 
@@ -336,9 +337,8 @@ export default function DesktopHeroScroller({
   // Main RAF interpolation loop - OPTIMIZED FOR PRODUCTION
   useEffect(() => {
     activeRef.current = true;
-    let lastFrameTime = performance.now();
 
-    const loop = (currentTime: number) => {
+    const loop = () => {
       if (!activeRef.current) return;
 
       // Skip frames when hero is not visible
@@ -347,35 +347,13 @@ export default function DesktopHeroScroller({
         return;
       }
 
-      // Target 60 FPS: ~16.67ms per frame
-      const deltaTime = currentTime - lastFrameTime;
-      const targetFrameTime = 16.67;
-
-      // Adaptive frame skipping for performance
-      const shouldSkipFrame = deltaTime < targetFrameTime * 0.9;
-      if (shouldSkipFrame && frameSkipCounterRef.current < 2) {
-        frameSkipCounterRef.current++;
-        rafIdRef.current = requestAnimationFrame(loop);
-        return;
-      }
-
-      frameSkipCounterRef.current = 0;
-      lastFrameTime = currentTime;
-
-      // Smooth time interpolation - optimized factor
+      // Smooth time interpolation - responsive factor
       const timeDiff = targetTimeRef.current - currentTimeRef.current;
       const hasSignificantTimeDiff = Math.abs(timeDiff) > 0.001;
       
       if (hasSignificantTimeDiff) {
-        // Faster interpolation for smoother frame transitions
-        currentTimeRef.current += timeDiff * 0.25;
-        
-        // Only seek if enough time has passed since last draw
-        const timeSinceLastDraw = currentTime - lastDrawTimeRef.current;
-        if (timeSinceLastDraw > 16) {
-          seekVideo(currentTimeRef.current);
-          lastDrawTimeRef.current = currentTime;
-        }
+        currentTimeRef.current += timeDiff * 0.32;
+        seekVideo(currentTimeRef.current);
       }
 
       // Smooth split door interpolation
@@ -383,7 +361,7 @@ export default function DesktopHeroScroller({
       const hasSignificantSplitDiff = Math.abs(splitDiff) > 0.0001;
       
       if (hasSignificantSplitDiff) {
-        currentSplitRef.current += splitDiff * 0.25;
+        currentSplitRef.current += splitDiff * 0.32;
       } else {
         currentSplitRef.current = targetSplitRef.current;
       }
@@ -415,10 +393,10 @@ export default function DesktopHeroScroller({
         const leftTransform = `translate3d(-${movePct}%, 0, 0) rotateY(${rotateYDeg}deg) scale(${scaleVal})`;
         const rightTransform = `translate3d(${movePct}%, 0, 0) rotateY(-${rotateYDeg}deg) scale(${scaleVal})`;
 
-        if (leftDoorRef.current && leftDoorRef.current.style.transform !== leftTransform) {
+        if (leftDoorRef.current) {
           leftDoorRef.current.style.transform = leftTransform;
         }
-        if (rightDoorRef.current && rightDoorRef.current.style.transform !== rightTransform) {
+        if (rightDoorRef.current) {
           rightDoorRef.current.style.transform = rightTransform;
         }
 
@@ -427,11 +405,6 @@ export default function DesktopHeroScroller({
           const portalScale = 0.92 + split * 0.08;
           portalLayerRef.current.style.opacity = portalOpacity.toFixed(3);
           portalLayerRef.current.style.transform = `scale(${portalScale.toFixed(4)})`;
-        }
-
-        if (feBlurRef.current) {
-          const blurAmount = Math.sin(split * Math.PI) * 4;
-          feBlurRef.current.setAttribute('stdDeviation', `${blurAmount.toFixed(1)} 0`);
         }
       } else if (!isSplitting && portalLayerRef.current) {
         portalLayerRef.current.style.opacity = '0';
@@ -452,7 +425,7 @@ export default function DesktopHeroScroller({
   useEffect(() => {
     handleResize();
 
-    window.addEventListener('scroll', throttledScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     let resizeTimer: NodeJS.Timeout;
     const debouncedResize = () => {
@@ -479,7 +452,7 @@ export default function DesktopHeroScroller({
       if (typeof window !== 'undefined') {
         const win = window as WindowWithLenis;
         if (win.__lenis) {
-          win.__lenis.on('scroll', throttledScroll);
+          win.__lenis.on('scroll', onScroll);
           handleSync();
         }
       }
@@ -503,13 +476,13 @@ export default function DesktopHeroScroller({
     }
 
     return () => {
-      window.removeEventListener('scroll', throttledScroll);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', debouncedResize);
       window.removeEventListener('pageshow', handleSync);
       window.removeEventListener('load', handleSync);
       if (typeof window !== 'undefined') {
         const win = window as WindowWithLenis;
-        win.__lenis?.off?.('scroll', throttledScroll);
+        win.__lenis?.off?.('scroll', onScroll);
       }
       clearTimeout(t0);
       clearTimeout(t1);
@@ -517,7 +490,7 @@ export default function DesktopHeroScroller({
       clearTimeout(lenisTimer);
       if (heroObserver) heroObserver.disconnect();
     };
-  }, [handleResize, measureScroll, throttledScroll]);
+  }, [handleResize, measureScroll, onScroll]);
 
   return (
     <>
@@ -559,28 +532,6 @@ export default function DesktopHeroScroller({
 
       {/* 2. Portal Reveal Layer */}
       <PortalRevealLayer portalLayerRef={portalLayerRef} />
-
-      {/* 3. SVG Filter for Directional Horizontal Motion Blur */}
-      <svg
-        className="absolute w-0 h-0 pointer-events-none opacity-0"
-        aria-hidden="true"
-      >
-        <defs>
-          <filter
-            id="doorMotionBlur"
-            x="-30%"
-            y="0%"
-            width="160%"
-            height="100%"
-          >
-            <feGaussianBlur
-              ref={feBlurRef}
-              stdDeviation="0 0"
-              edgeMode="duplicate"
-            />
-          </filter>
-        </defs>
-      </svg>
 
       {/* 4. Canvas Layers Container (Desktop Web View) */}
       {isClient && (

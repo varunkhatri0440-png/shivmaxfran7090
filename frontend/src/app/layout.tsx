@@ -6,14 +6,12 @@ import './globals.css';
 const cinzel = Cinzel({
   variable: '--font-cinzel',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
 });
 
 const playfair = Playfair_Display({
   variable: '--font-playfair',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
   display: 'swap',
 });
@@ -21,7 +19,6 @@ const playfair = Playfair_Display({
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
 

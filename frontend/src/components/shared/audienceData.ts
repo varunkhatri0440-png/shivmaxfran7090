@@ -28,7 +28,7 @@ export interface NavPill {
 export const navPills: NavPill[] = [
   { id: 0, label: 'Job Workers', sub: 'Salaried Professionals' },
   { id: 1, label: 'Business Persons', sub: 'Entrepreneurs' },
-  { id: 2, label: 'Senior Leaders', sub: 'Retired Officers' },
+  { id: 2, label: 'Senior Leaders', sub: 'Senior Executives' },
   { id: 3, label: 'Official Application', sub: 'Franchise Desk' },
 ];
 
@@ -39,34 +39,34 @@ export const audiences: AudienceSegment[] = [
     title: 'Job Workers',
     roleSubtitle: 'Salaried Professionals',
     tagline:
-      'Secure, high-growth transition into entrepreneurship without the crushing risk of starting a new business from scratch.',
-    headlineBenefit: 'Transition to Ownership with 4X Income Potential',
+      'Transition smoothly from a salaried job into your own real estate business with complete setup support.',
+    headlineBenefit: 'Start Your Own Business with Strong Earning Potential',
     icon: Briefcase,
     accentGlow: 'from-[#d4af37]/20 via-[#fbf5b7]/10 to-transparent',
     benefits: [
       {
-        title: 'Get Own Real Estate Business Setup',
+        title: 'Complete Office & Setup Support',
         detail:
-          'The 1-year fully-funded operational support (office rent, staff salary, utilities) acts as a completely risk-free incubation period — transition from an employee to a business owner without diverting hard-earned personal savings into startup costs.',
-        impactBadge: 'Zero Risk Incubation',
+          'Start your own real estate business without risking your personal savings on heavy setup costs.',
+        impactBadge: 'Low Initial Pressure',
         impactDetail:
-          'Avoid the crushing debt and overhead risk of a traditional new venture while keeping your family’s financial security intact.',
+          'Step into business with a ready office setup while keeping your family’s financial stability safe.',
       },
       {
-        title: '4X Income Growth Potential',
+        title: 'Uncapped Earning from Deals',
         detail:
-          'Commission income is directly proportional to effort, network, and project access — all provided by Shivmax. Unlike a capped corporate salary, your earnings scale with every transaction.',
-        impactBadge: 'Uncapped Earning Potential',
+          'In a salaried job, your monthly income is fixed. In real estate, your earnings grow with every deal you close through our verified property network.',
+        impactBadge: 'Direct Earning Growth',
         impactDetail:
-          'Motivated professionals can see annual income rapidly surpass their former salary, aiming for 4X growth in the first 12–24 months.',
+          'Your hard work and dedication directly translate into higher commission earnings with every closed deal.',
       },
       {
-        title: 'Well-Established Network & Training Support',
+        title: 'Hands-On Training & Brand Backing',
         detail:
-          'Our Elite Training Program and personal 1:1 mentorship bridge knowledge gaps in real estate domain expertise, sales negotiation, and legal contracts; you instantly inherit Shivmax’s institutional reputation.',
-        impactBadge: 'Instant Brand Authority',
+          'You receive practical sales training and personal mentorship from Mr. Vivek Mishra to learn property laws, client handling, and deal closing.',
+        impactBadge: 'Complete Guidance',
         impactDetail:
-          'Operate proudly under a trusted, established brand. Bypass years of solo trial-and-error and close high-commission sales from month one.',
+          'Work under an established real estate brand with experienced guidance supporting you at every step.',
       },
     ],
   },
@@ -74,73 +74,73 @@ export const audiences: AudienceSegment[] = [
     id: 'business-persons',
     number: '02',
     title: 'Business Persons',
-    roleSubtitle: 'Existing Entrepreneurs & Self-Employed',
+    roleSubtitle: 'Existing Business Owners & Entrepreneurs',
     tagline:
-      'An asset-light diversification strategy adding a high-margin income stream using your existing financial network and business acumen.',
-    headlineBenefit: 'Lucrative Asset-Light High-Margin Diversification',
+      'Add a high-value real estate income stream to your existing business using your market network and experience.',
+    headlineBenefit: 'Expand into Real Estate with Low Overhead',
     icon: TrendingUp,
     accentGlow: 'from-[#e6be48]/20 via-[#d4af37]/10 to-transparent',
     benefits: [
       {
-        title: 'Extra Income from Real Estate (Diversification)',
+        title: 'New Income Stream for Your Business',
         detail:
-          'Real estate serves as a resilient hedge against cyclical volatility in other business sectors. Your existing customer base and business relationships easily generate high-ticket referrals for Shivmax projects.',
-        impactBadge: 'Asset-Light Diversification',
+          'Real estate is a proven way to diversify your earnings. You can offer premium property options to your existing clients and business network.',
+        impactBadge: 'Business Expansion',
         impactDetail:
-          'Adds an extraordinarily lucrative real estate vertical without tying up working capital in new premises or ongoing staff payroll.',
+          'Grow an additional revenue stream without locking your working capital in heavy infrastructure or new staff costs.',
       },
       {
-        title: 'Leveraging Existing Network for New Revenue',
+        title: 'Monetize Your Existing Network',
         detail:
-          'Your established business network already trusts you implicitly. By introducing Shivmax’s vetted, high-value project inventory, that established goodwill translates into substantial real estate transactions.',
-        impactBadge: 'High Margin, Low Overhead',
+          'Your contacts already know and trust your business. Offering them verified Shivmax projects turns that trust into valuable closed transactions.',
+        impactBadge: 'Strong Network Value',
         impactDetail:
-          'The Shivmax brand and premier project portfolio become an elite asset offering to your existing contacts with minimal marginal effort.',
+          'Provide top-tier property options to your contacts backed by our full project inventory and legal desk.',
       },
       {
-        title: 'Operational Ease (Focus on Strategy)',
+        title: 'Hassle-Free Daily Operations',
         detail:
-          'Because Shivmax manages the 365-day office support and core staff salaries, you never get bogged down in micro-administrative logistics. You stay focused entirely on strategic relationships, networking, and executive meetings.',
-        impactBadge: 'High-Efficiency Strategic Asset',
+          'Because office rent and core staff support are taken care of for the first year, you can focus entirely on client relationships rather than administrative tasks.',
+        impactBadge: 'Smooth Management',
         impactDetail:
-          'Scale high-margin revenue by dedicating only a focused portion of your week — maximizing return on existing social capital.',
+          'Run a successful real estate branch alongside your current business without operational distractions.',
       },
     ],
   },
   {
-    id: 'retirees',
+    id: 'senior-leaders',
     number: '03',
-    title: 'Retired Officers & Leaders',
-    roleSubtitle: 'Or Early Retirees & Senior Professionals',
+    title: 'Senior Officers & Leaders',
+    roleSubtitle: 'Senior Professionals & Executives',
     tagline:
-      'A fulfilling, low-stress, stable way to supplement pension and invest time productively in a respected advisory role.',
-    headlineBenefit: 'Fulfilling Engagement & Scalable Extra Income',
+      'A respected way to stay active, guide clients, and earn extra income on your own terms.',
+    headlineBenefit: 'Stay Active, Respected & Financially Productive',
     icon: Shield,
     accentGlow: 'from-[#fbf5b7]/20 via-[#d4af37]/10 to-transparent',
     benefits: [
       {
-        title: 'Easy Start — Earning INR 40K+ per Month',
+        title: 'Comfortable Additional Income',
         detail:
-          'Financial support (zero office rent, fully covered staff salary) removes performance anxiety and overhead burn. Achieving an INR 40K+/month income target is readily achievable by leveraging established community respect and family networks.',
-        impactBadge: 'Stable Supplemented Income',
+          'With office setup and staff support provided, you can start comfortably without financial pressure or overhead costs.',
+        impactBadge: 'Second Income Stream',
         impactDetail:
-          'Supplement post-retirement income with low-stress, high-value transactions backed by full institutional support.',
+          'Build an additional income stream by guiding property buyers with complete peace of mind.',
       },
       {
-        title: 'Productive Use of Time (No Desk Boredom)',
+        title: 'Meaningful Work on Your Own Schedule',
         detail:
-          'Post-retirement often brings sudden routine loss. Running an executive Shivmax office provides purposeful structure, regular meetings, and active community relevance on a flexible schedule.',
-        impactBadge: 'Active Life Purpose',
+          'Running a local real estate office gives you a purposeful routine, regular client meetings, and active community engagement on your own flexible schedule.',
+        impactBadge: 'Flexible Routine',
         impactDetail:
-          'Maintains professional dignity, mental sharpness, and meaningful social interaction without the rigid 9-to-5 grind.',
+          'Stay mentally active, interact with good people, and work at a pace that is comfortable for you.',
       },
       {
-        title: 'High Respect & Dignity in the Industry',
+        title: 'High Respect as a Trusted Advisor',
         detail:
-          'Shivmax is built upon transparency, ethical dealings, and premium property portfolios. Franchisees enjoy immense social stature as trusted property advisors in their city or region.',
-        impactBadge: 'Respected Community Stature',
+          'Property buyers value honest, mature, and experienced guidance. Your life experience makes you a naturally trusted property consultant in your city.',
+        impactBadge: 'Community Stature',
         impactDetail:
-          'Continue a legacy of leadership and prestige as the recognized head of a prime real estate advisory practice.',
+          'Build a lasting, respected advisory role backed by an established and ethical real estate brand.',
       },
     ],
   },

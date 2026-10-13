@@ -60,6 +60,21 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' data: blob: https://images.unsplash.com",
+              "media-src 'self' data: blob:",
+              "connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https://api.whatsapp.com https://images.unsplash.com",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self' https://api.whatsapp.com",
+            ].join('; '),
+          },
+          {
             key: 'X-Frame-Options',
             value: 'DENY',
           },
@@ -73,15 +88,19 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()',
           },
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin',
           },
         ],
       },

@@ -1,17 +1,13 @@
 'use client';
 
 import React from 'react';
-import {
-  CheckCircle2,
-  ArrowRight,
-} from 'lucide-react';
 
 interface ZeroOverheadCommitmentProps {
   onApply?: () => void;
 }
 
 export default function ZeroOverheadCommitment({
-  onApply,
+  onApply: _onApply,
 }: ZeroOverheadCommitmentProps) {
   const pillars = [
     {
@@ -20,17 +16,17 @@ export default function ZeroOverheadCommitment({
       title: '1 Year Office Rent Covered',
       tag: 'Zero Overhead',
       description:
-        'Shivmax secures and covers the entire rental expense for a prime, professional location with no rent or light bill expense for the full first year (365 days).',
+        'Shivmax covers 100% of your office rent and electricity bills in a prime location for your entire first year (365 days).',
       focusBadge: 'Client Meetings & Deal Closing',
       financialBenefit: 'Saves 6-figure commercial lease deposit & 12 months rent',
     },
     {
       id: 'interior',
       number: '02',
-      title: 'Premium Office Interior & AC',
+      title: 'Office Interior',
       tag: 'Turnkey Setup',
       description:
-        'State-of-the-art office, fully fitted and ready for business from day one — complete with designer furniture, executive desks, air conditioning, and electrical wiring.',
+        'Complete with designer furniture, executive desks, AC,and  electrical wiring.',
       focusBadge: 'Immediate Professional Credibility',
       financialBenefit: 'Saves tens of thousands in capital fit-out & setup time',
     },
@@ -40,27 +36,27 @@ export default function ZeroOverheadCommitment({
       title: '1-Year Staff Support & Salary',
       tag: 'Payroll Covered',
       description:
-        'Shivmax covers the full 1-year salary for your dedicated core office staff (coordinator/manager) so you operate without payroll or administrative burden.',
+        'Shivmax covers the full 1-year salary for your core office staff so you operate without payroll or administrative burden.',
       focusBadge: 'Sales Strategy & Client Outreach',
       financialBenefit: 'Eliminates recurring monthly payroll risk & hiring stress',
     },
     {
       id: 'mentorship',
       number: '04',
-      title: 'Elite Training & Personal Mentorship',
+      title: 'Training & Personal Mentorship',
       tag: '1:1 Guidance',
       description:
-        'Comprehensive, intensive training on real estate law, market analysis, high-conversion sales, and 1:1 personal guidance directly from top industry leaders.',
+        'Intensive training on real estate law, market analysis, high-conversion sales, and 1:1 personal guidance directly.',
       focusBadge: 'Domain Mastery & High-Ticket Deals',
       financialBenefit: 'Direct competitive advantage & proven sales playbooks',
     },
     {
       id: 'network',
       number: '05',
-      title: 'Unrivaled Network Access',
+      title: 'Profitable Network',
       tag: 'Immediate Leverage',
       description:
-        'Immediate access to Shivmax’s 10+ years cultivated real estate ecosystem — exclusive project inventory, developer contacts, legal teams, and market tools.',
+        '10+ years of real estate experience works directly to grow your profits. Every network connection built over the last decade will become the key reason behind your business success.',
       focusBadge: 'Closing Deals & Revenue Generation',
       financialBenefit: 'Bypasses years-long trust building; instant market credibility',
     },
@@ -92,7 +88,7 @@ export default function ZeroOverheadCommitment({
           </div>
 
           <p className="mt-6 text-sm sm:text-base text-slate-300 font-light leading-relaxed max-w-2xl mx-auto tracking-wide">
-            Shivmax invests in your success by providing a 365-day fully-funded support package that eliminates 100% of startup overhead — ensuring zero financial burden and guaranteed operational profit from Day One.
+            Shivmax invests in your success by providing a 365-day fully-funded support that eliminates 100% of startup overhead — ensuring zero financial burden and guaranteed operational profit.
           </p>
 
           <div className="w-24 h-[1.5px] mx-auto mt-8 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent shadow-[0_0_10px_#d4af37]" />
@@ -136,23 +132,6 @@ export default function ZeroOverheadCommitment({
                 </p>
               </div>
 
-              {/* Bottom Badges */}
-              <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-2.5 relative z-10">
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 block mb-1">
-                    Your 100% Focus:
-                  </span>
-                  <div className="inline-flex items-center gap-2 text-xs font-medium text-[#f5e6ba]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#d4af37] flex-shrink-0" />
-                    <span>{pillar.focusBadge}</span>
-                  </div>
-                </div>
-
-                <div className="text-[11px] text-slate-400 font-light leading-snug">
-                  {pillar.financialBenefit}
-                </div>
-              </div>
-
               {/* Background Watermark Numeral */}
               <span className="absolute right-4 bottom-2 font-serif text-6xl font-light text-white/[0.02] group-hover:text-[#d4af37]/[0.08] transition-colors select-none pointer-events-none">
                 {pillar.number}
@@ -175,19 +154,10 @@ export default function ZeroOverheadCommitment({
               </h3>
 
               <p className="mt-4 text-xs sm:text-sm text-slate-300/85 font-light leading-relaxed">
-                By removing 100% of physical infrastructure costs, commercial deposits, and staff payroll, your entire energy is directed toward closing transactions and earning uncapped commissions.
+                By removing 100% of physical infrastructure costs ,and  staff payroll, your entire energy is directed toward closing transactions.
               </p>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-white/[0.08]">
-              <button
-                onClick={onApply}
-                className="w-full py-4 rounded-full text-xs font-semibold tracking-[0.25em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(212,175,55,0.4)] flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Partner With Shivmax</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
       </div>

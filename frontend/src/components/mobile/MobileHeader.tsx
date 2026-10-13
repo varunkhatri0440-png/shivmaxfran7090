@@ -64,11 +64,10 @@ export default function MobileHeader({ onOpenBooking: _onOpenBooking }: MobileHe
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 select-none ${
-          scrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 select-none ${scrolled
             ? 'bg-[#050608]/96 backdrop-blur-xl border-b border-white/[0.08] py-2.5 shadow-2xl'
             : 'bg-gradient-to-b from-[#050608]/90 via-[#050608]/40 to-transparent py-3.5'
-        }`}
+          }`}
       >
         <div className="w-full px-5 sm:px-8 flex items-center justify-between">
           {/* Brand Logo */}
@@ -129,14 +128,13 @@ export default function MobileHeader({ onOpenBooking: _onOpenBooking }: MobileHe
           </div>
 
           {/* Navigation Items */}
-          <div className="relative z-10 flex flex-col gap-2 my-auto py-2 max-w-xl mx-auto w-full">
+          <nav aria-label="Mobile Navigation" className="relative z-10 flex flex-col gap-2 my-auto py-2 max-w-xl mx-auto w-full">
             {[
               { id: 'mobile-hero-top', num: '01', title: 'The Advantage' },
-              { id: 'commitments', num: '02', title: '5 Launch Commitments' },
-              { id: 'advantage-breakdown', num: '03', title: 'Advantage Breakdown' },
-              { id: 'founder', num: '04', title: 'Founder & CEO (Mr. Vivek Mishra)' },
-              { id: 'who-benefits-mobile', num: '05', title: 'Who Benefits Most' },
-              { id: 'apply', num: '06', title: 'Franchise Application Form' },
+              { id: 'advantage-breakdown', num: '02', title: 'Advantage Breakdown' },
+              { id: 'founder', num: '03', title: 'Founder & CEO (Mr. Vivek Mishra)' },
+              { id: 'who-benefits-mobile', num: '04', title: 'Who Benefits Most' },
+              { id: 'apply', num: '05', title: 'Franchise Application Form' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -156,7 +154,7 @@ export default function MobileHeader({ onOpenBooking: _onOpenBooking }: MobileHe
                 </span>
               </button>
             ))}
-          </div>
+          </nav>
 
           {/* Drawer Bottom Actions */}
           <div className="relative z-10 pt-4 border-t border-white/[0.08] space-y-3 max-w-xl mx-auto w-full">
@@ -169,7 +167,7 @@ export default function MobileHeader({ onOpenBooking: _onOpenBooking }: MobileHe
             </button>
 
             <div className="text-center text-[10px] font-mono tracking-wider uppercase text-slate-400">
-              <span className="text-[#d4af37]">Founder &amp; CEO:</span> Mr. Vivekkumar Mishra &bull; Vadodara, PAN-INDIA
+              <span className="text-[#d4af37]">Founder &amp; CEO:</span> Mr. Vivek Mishra &bull; Vadodara, PAN-INDIA
             </div>
           </div>
         </div>

@@ -1,9 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, ChevronDown, Check } from 'lucide-react';
 import { submitInquiry } from '@/lib/api';
 import { redirectToWhatsApp } from '@/lib/whatsapp';
+
+const PROFILE_CATEGORIES = [
+  'Salaried Professional (Job Worker)',
+  'Existing Entrepreneur (Business Person)',
+  'Senior Officer / Community Leader',
+  'NRI / Institutional Investor',
+  'Other / Custom Profile',
+];
 
 interface FranchiseApplicationFormProps {
   isMobile?: boolean;
@@ -16,12 +24,31 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
     email: '',
     city: 'Vadodara, Gujarat',
     category: 'Salaried Professional (Job Worker)',
-    timeline: 'Immediate (Within 30 Days)',
+    customCategory: '',
+    timeline: 'Immediate',
     message: '',
     fax_number: '',
   });
 
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const effectiveCategory =
+    formData.category === 'Other / Custom Profile'
+      ? (formData.customCategory.trim() ? `Custom: ${formData.customCategory.trim()}` : 'Other / Custom Profile')
+      : formData.category;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +73,8 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        propertyInterest: `Franchise Application: ${formData.category} (${formData.city})`,
-        specialRequests: `Timeline: ${formData.timeline}. Notes: ${formData.message}`,
+        propertyInterest: `Franchise Application: ${effectiveCategory} (${formData.city})`,
+        specialRequests: formData.message ? `Notes: ${formData.message}` : 'Shivmax Franchise Consultation',
         tourType: 'Shivmax Franchise Consultation',
       });
 
@@ -77,7 +104,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         phone: formData.phone,
         email: formData.email,
         city: formData.city,
-        category: formData.category,
+        category: effectiveCategory,
         timeline: formData.timeline,
         message: formData.message,
         referenceCode,
@@ -104,6 +131,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         <input
           type="text"
           required
+          aria-label="Full Name"
           placeholder="Full Name *"
           value={formData.fullName}
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -112,6 +140,9 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         <input
           type="tel"
           required
+          aria-label="Mobile Number (WhatsApp)"
+          pattern="[0-9+\s\-()]{7,25}"
+          title="Please enter a valid phone number between 7 and 25 digits"
           placeholder="Mobile Number (WhatsApp) *"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -120,6 +151,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         <input
           type="email"
           required
+          aria-label="Email Address"
           placeholder="Email Address *"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -128,21 +160,75 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         <input
           type="text"
           required
+          aria-label="Target City"
           placeholder="Target City *"
           value={formData.city}
           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
           className="w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
         />
-        <select
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="w-full px-3.5 py-3 rounded-xl bg-[#0a0d14] border border-white/[0.1] text-base sm:text-xs text-white focus:outline-none focus:border-[#d4af37]"
-        >
-          <option value="Salaried Professional (Job Worker)">Salaried Professional</option>
-          <option value="Existing Entrepreneur (Business Person)">Existing Entrepreneur</option>
-          <option value="Retired Officer / Senior Leader">Retired Officer / Senior Leader</option>
-          <option value="NRI / Institutional Investor">NRI / Institutional Investor</option>
-        </select>
+
+        {/* Theme-Matched Luxury Dropdown (Mobile) */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            role="combobox"
+            aria-expanded={isCategoryOpen}
+            aria-controls="mobile-category-list"
+            aria-haspopup="listbox"
+            aria-label="Select Profile Category"
+            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            className="w-full px-3.5 py-3 rounded-xl bg-[#0a0d14] border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-xs text-white transition-all cursor-pointer flex items-center justify-between"
+          >
+            <span className="truncate">{formData.category}</span>
+            <ChevronDown className={`w-4 h-4 text-[#d4af37] transition-transform duration-300 ml-2 flex-shrink-0 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isCategoryOpen && (
+            <div
+              id="mobile-category-list"
+              role="listbox"
+              aria-label="Profile Categories"
+              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/45 shadow-[0_15px_45px_rgba(0,0,0,0.95)] backdrop-blur-2xl py-1.5 overflow-hidden"
+            >
+              {PROFILE_CATEGORIES.map((cat) => {
+                const isSelected = formData.category === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setFormData({ ...formData, category: cat });
+                      setIsCategoryOpen(false);
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs transition-all flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#d4af37]/15 text-[#fbf5b7] font-medium'
+                        : 'text-slate-300 hover:text-white hover:bg-[#d4af37]/10'
+                    }`}
+                  >
+                    <span>{cat}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-[#d4af37]" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {formData.category === 'Other / Custom Profile' && (
+          <input
+            type="text"
+            required
+            aria-label="Specify your background or profession"
+            placeholder="Please specify your profession or background *"
+            value={formData.customCategory}
+            onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-[#d4af37]/50 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
+          />
+        )}
+
         <button
           type="submit"
           disabled={isSubmitting}
@@ -171,10 +257,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Full Name */}
         <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+          <label htmlFor="franchise-fullname" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Full Name *
           </label>
           <input
+            id="franchise-fullname"
             type="text"
             required
             placeholder="e.g. Rajesh Kumar"
@@ -186,12 +273,15 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
         {/* Mobile / WhatsApp */}
         <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+          <label htmlFor="franchise-phone" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Mobile Number (WhatsApp) *
           </label>
           <input
+            id="franchise-phone"
             type="tel"
             required
+            pattern="[0-9+\s\-()]{7,25}"
+            title="Please enter a valid phone number between 7 and 25 digits"
             placeholder="+91 98765 43210"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -203,10 +293,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Email */}
         <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+          <label htmlFor="franchise-email" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Email Address *
           </label>
           <input
+            id="franchise-email"
             type="email"
             required
             placeholder="rajesh@example.com"
@@ -218,10 +309,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
         {/* Target City */}
         <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+          <label htmlFor="franchise-city" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Target City / Location *
           </label>
           <input
+            id="franchise-city"
             type="text"
             required
             placeholder="e.g. Vadodara, Ahmedabad, Surat"
@@ -232,48 +324,83 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Target Profile Category */}
-        <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
-            Your Profile Category *
-          </label>
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-[#0a0d14] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white transition-all cursor-pointer"
+      {/* Target Profile Category — Theme-Matched Luxury Dropdown */}
+      <div className="space-y-1.5" ref={dropdownRef}>
+        <label id="franchise-category-label" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+          Your Profile Category *
+        </label>
+        <div className="relative">
+          <button
+            type="button"
+            role="combobox"
+            aria-labelledby="franchise-category-label"
+            aria-expanded={isCategoryOpen}
+            aria-controls="desktop-category-list"
+            aria-haspopup="listbox"
+            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            className="w-full px-4 py-2.5 rounded-xl bg-[#0a0d14] border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-base sm:text-xs text-white transition-all cursor-pointer flex items-center justify-between shadow-inner"
           >
-            <option value="Salaried Professional (Job Worker)">Salaried Professional (Job Worker)</option>
-            <option value="Existing Entrepreneur (Business Person)">Existing Entrepreneur (Business Person)</option>
-            <option value="Retired Officer / Senior Leader">Retired Officer / Senior Leader</option>
-            <option value="NRI / Institutional Investor">NRI / Institutional Investor</option>
-          </select>
+            <span className="truncate">{formData.category}</span>
+            <ChevronDown className={`w-4 h-4 text-[#d4af37] transition-transform duration-300 ml-2 flex-shrink-0 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isCategoryOpen && (
+            <div
+              id="desktop-category-list"
+              role="listbox"
+              aria-labelledby="franchise-category-label"
+              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/45 shadow-[0_15px_45px_rgba(0,0,0,0.95)] backdrop-blur-2xl py-1.5 overflow-hidden"
+            >
+              {PROFILE_CATEGORIES.map((cat) => {
+                const isSelected = formData.category === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setFormData({ ...formData, category: cat });
+                      setIsCategoryOpen(false);
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs transition-all flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#d4af37]/15 text-[#fbf5b7] font-medium'
+                        : 'text-slate-300 hover:text-white hover:bg-[#d4af37]/10'
+                    }`}
+                  >
+                    <span>{cat}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-[#d4af37]" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Investment & Launch Timeline */}
-        <div className="space-y-1.5">
-          <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
-            Target Launch Timeline
-          </label>
-          <select
-            value={formData.timeline}
-            onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-[#0a0d14] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white transition-all cursor-pointer"
-          >
-            <option value="Immediate (Within 30 Days)">Immediate (Within 30 Days)</option>
-            <option value="1 to 2 Months">1 to 2 Months</option>
-            <option value="Quarterly Planning">Quarterly Planning</option>
-            <option value="Exploratory Evaluation">Exploratory Evaluation</option>
-          </select>
-        </div>
+        {/* Custom Profile Specification Field */}
+        {formData.category === 'Other / Custom Profile' && (
+          <div className="pt-1.5 animate-in fade-in duration-200">
+            <input
+              type="text"
+              required
+              aria-label="Specify your background or profession"
+              placeholder="Specify your background / profession (e.g. Doctor, Architect, Consultant)..."
+              value={formData.customCategory}
+              onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl bg-white/[0.04] border border-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all"
+            />
+          </div>
+        )}
       </div>
 
       {/* Special Strategic Notes */}
       <div className="space-y-1.5">
-        <label className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+        <label htmlFor="franchise-message" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
           Background &amp; Strategic Ambitions (Optional)
         </label>
         <textarea
+          id="franchise-message"
           rows={2}
           placeholder="Share relevant domain background, network reach, or preferred location..."
           value={formData.message}

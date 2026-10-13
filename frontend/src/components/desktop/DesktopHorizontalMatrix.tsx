@@ -114,7 +114,7 @@ export default function DesktopHorizontalMatrix({
                     className="w-screen h-full flex-shrink-0 flex items-center justify-center px-12 lg:px-20 py-8 relative"
                   >
                     <div className="w-full max-w-[1400px] mx-auto grid grid-cols-12 gap-8 items-center">
-                      
+
                       {/* Left Column: Segment Thesis */}
                       <div className="col-span-5 space-y-5 text-left pr-4">
                         <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.1] backdrop-blur-md">
@@ -128,7 +128,7 @@ export default function DesktopHorizontalMatrix({
                           <h3 className="text-4xl lg:text-5xl font-serif font-light text-white leading-tight tracking-tight">
                             {audience.title}
                           </h3>
-                          <p className="text-lg lg:text-xl font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text">
+                          <p className="text-lg lg:text-xl font-serif text-[#fbf5b7] font-normal leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
                             {audience.tagline}
                           </p>
                         </div>
@@ -182,7 +182,7 @@ export default function DesktopHorizontalMatrix({
                 className="w-screen h-full flex-shrink-0 flex items-center justify-center px-12 lg:px-20 py-8 relative"
               >
                 <div className="w-full max-w-[1300px] mx-auto grid grid-cols-12 gap-10 items-center">
-                  
+
                   {/* Left Column: Directorate Invitation & Direct Contacts */}
                   <div className="col-span-5 space-y-6 text-left">
                     <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30">
@@ -197,35 +197,35 @@ export default function DesktopHorizontalMatrix({
                         Apply for Franchise
                       </h3>
                       <p className="text-lg font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text">
-                        Direct Evaluation by Directorate
+                        Direct Review by Mr. Vivek Mishra
                       </p>
                     </div>
 
                     <p className="text-xs text-slate-300 font-light leading-relaxed">
-                      Every submission is reviewed directly by Mr. Vivekkumar Mishra&apos;s executive desk. Approved partners receive territory exclusivity and our complete 365-day fully-funded launch setup.
+                      Every application is reviewed directly by Mr. Vivek Mishra. Selected partners receive dedicated area rights and complete first-year setup support to launch their office.
                     </p>
 
                     <div className="space-y-2.5 pt-2 border-t border-white/[0.08] text-xs font-mono text-slate-300">
                       <div className="flex items-center gap-2">
                         <span className="text-[#d4af37]">&bull;</span>
-                        <span>Corporate HQ: Vadodara, Gujarat, India</span>
+                        <span>Corporate Office: Vadodara, Gujarat</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[#d4af37]">&bull;</span>
-                        <span>Territory Allocation: 1 Partner per Prime Node</span>
+                        <span>Territory: Exclusive partner per area</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[#d4af37]">&bull;</span>
-                        <span>Evaluation Turnaround: Under 24 Hours</span>
+                        <span>Response Time: Direct contact within 24 hours</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Right Column: Embedded Lead Form */}
                   <div className="col-span-7">
-                    <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0d14] via-[#06080d] to-[#0c1018] border border-white/[0.12] shadow-2xl relative overflow-hidden">
+                    <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0d14] via-[#06080d] to-[#0c1018] border border-white/[0.12] shadow-2xl relative z-20">
                       <div className="absolute top-0 left-0 w-32 h-[2px] bg-gradient-to-r from-[#d4af37] to-transparent" />
-                      
+
                       <div className="mb-6 text-left">
                         <span className="text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#d4af37] block mb-1">
                           Official Franchise Application

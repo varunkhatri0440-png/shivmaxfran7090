@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreateInquiryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
+  @Matches(/^[^<>%$*{}|~]+$/, { message: 'Full name contains disallowed characters.' })
   fullName!: string;
 
   @IsEmail()
@@ -15,6 +16,9 @@ export class CreateInquiryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(30)
+  @Matches(/^[0-9+\s\-()]{7,25}$/, {
+    message: 'Phone number must be a valid format between 7 and 25 characters.',
+  })
   phone!: string;
 
   @IsOptional()
@@ -58,6 +62,7 @@ export interface InquiryRecord extends CreateInquiryDto {
 
 @Injectable()
 export class InquiriesService {
+  private readonly MAX_INQUIRIES = 1000;
   private inquiries: InquiryRecord[] = [];
 
   create(dto: CreateInquiryDto): InquiryRecord {
@@ -92,6 +97,9 @@ export class InquiriesService {
     };
 
     this.inquiries.unshift(record);
+    if (this.inquiries.length > this.MAX_INQUIRIES) {
+      this.inquiries.pop();
+    }
     return record;
   }
 

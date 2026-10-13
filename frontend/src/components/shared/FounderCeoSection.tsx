@@ -4,7 +4,6 @@ import React from 'react';
 import {
   Shield,
   MapPin,
-  Sparkles,
 } from 'lucide-react';
 import '../../styles/crest.css';
 
@@ -17,56 +16,65 @@ export default function FounderCeoSection({
 }: FounderCeoSectionProps) {
   const watermarkRef = React.useRef<HTMLDivElement>(null);
   const ceoImageRef = React.useRef<HTMLDivElement>(null);
+  const lastMousePosRef = React.useRef<{ clientX: number; clientY: number } | null>(null);
+  const isHoveredRef = React.useRef<boolean>(false);
 
-  const rafMoveRef = React.useRef<number | null>(null);
-  const rafCeoRef = React.useRef<number | null>(null);
+  const updatePositions = React.useCallback((clientX: number, clientY: number) => {
+    // Watermark brush effect - exact instantaneous tracking
+    if (watermarkRef.current) {
+      const rect = watermarkRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      watermarkRef.current.style.setProperty('--brush-x', `${x}px`);
+      watermarkRef.current.style.setProperty('--brush-y', `${y}px`);
+      watermarkRef.current.style.setProperty('--brush-opacity', '1');
+    }
+
+    // CEO image hover glow effect - exact instantaneous tracking
+    if (ceoImageRef.current) {
+      const rect = ceoImageRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      ceoImageRef.current.style.setProperty('--ceo-glow-x', `${x}px`);
+      ceoImageRef.current.style.setProperty('--ceo-glow-y', `${y}px`);
+    }
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
+    isHoveredRef.current = true;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
-    
-    // Watermark brush effect
-    if (watermarkRef.current) {
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      if (rafMoveRef.current) cancelAnimationFrame(rafMoveRef.current);
-      rafMoveRef.current = requestAnimationFrame(() => {
-        if (!watermarkRef.current) return;
-        const watermarkRect = watermarkRef.current.getBoundingClientRect();
-        const x = clientX - watermarkRect.left;
-        const y = clientY - watermarkRect.top;
-        watermarkRef.current.style.setProperty('--brush-x', `${x}px`);
-        watermarkRef.current.style.setProperty('--brush-y', `${y}px`);
-        watermarkRef.current.style.setProperty('--brush-opacity', '1');
-      });
-    }
-
-    // CEO image hover glow effect
-    if (ceoImageRef.current) {
-      const rect = ceoImageRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      if (rafCeoRef.current) cancelAnimationFrame(rafCeoRef.current);
-      rafCeoRef.current = requestAnimationFrame(() => {
-        if (!ceoImageRef.current) return;
-        ceoImageRef.current.style.setProperty('--ceo-glow-x', `${x}px`);
-        ceoImageRef.current.style.setProperty('--ceo-glow-y', `${y}px`);
-      });
-    }
+    isHoveredRef.current = true;
+    lastMousePosRef.current = { clientX: e.clientX, clientY: e.clientY };
+    updatePositions(e.clientX, e.clientY);
   };
 
   const handleMouseLeave = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
-    if (rafMoveRef.current) cancelAnimationFrame(rafMoveRef.current);
-    if (rafCeoRef.current) cancelAnimationFrame(rafCeoRef.current);
+    isHoveredRef.current = false;
+    lastMousePosRef.current = null;
     if (watermarkRef.current) {
       watermarkRef.current.style.setProperty('--brush-opacity', '0');
     }
   };
 
+  // Keep effect perfectly pinned to cursor position even while scrolling
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (!isHoveredRef.current || !lastMousePosRef.current) return;
+      updatePositions(lastMousePosRef.current.clientX, lastMousePosRef.current.clientY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [updatePositions]);
+
   return (
     <section
       id="founder"
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative py-28 sm:py-36 px-6 sm:px-12 lg:px-20 bg-gradient-to-b from-[#050608] via-[#090c13] to-[#040507] border-t border-white/[0.08] overflow-hidden select-none"
@@ -85,9 +93,9 @@ export default function FounderCeoSection({
       >
         {/* Layer 1: Base Logo Watermark (Low lighting) */}
         <div className="absolute inset-0 opacity-[0.048] flex items-center justify-center pointer-events-none">
-          <img 
-            src="/logo/shivmax-crest-transparent.png" 
-            alt="" 
+          <img
+            src="/logo/shivmax-crest-transparent.png"
+            alt=""
             className="w-full h-full object-contain"
           />
         </div>
@@ -97,16 +105,16 @@ export default function FounderCeoSection({
 
         {/* Layer 3: Illuminated Logo Revealed by Brush (Desktop only) */}
         <div className="crest-brush-reveal absolute inset-0 flex items-center justify-center pointer-events-none">
-          <img 
-            src="/logo/shivmax-crest-transparent.png" 
-            alt="" 
+          <img
+            src="/logo/shivmax-crest-transparent.png"
+            alt=""
             className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(212,175,55,0.45)]"
           />
         </div>
       </div>
 
       <div className="max-w-[1560px] mx-auto relative z-10 space-y-16 sm:space-y-20 pointer-events-none">
-        
+
         {/* ==================================================================== */}
         {/* SECTION HEADER: ROYAL SOVEREIGNTY                                    */}
         {/* ==================================================================== */}
@@ -121,7 +129,7 @@ export default function FounderCeoSection({
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300/85 font-light tracking-wide max-w-xl mx-auto leading-relaxed">
-            Founder and Chief Executive Officer of Shivmax Real Estate Private Limited, pioneering India’s premier zero-overhead franchise partnership.
+            Founder and CEO of Shivmax Real Estate Private Limited, pioneering India’s premier zero-overhead franchise partnership.
           </p>
         </div>
 
@@ -129,22 +137,22 @@ export default function FounderCeoSection({
         {/* MASTER SHOWCASE LAYOUT: PORTRAIT & TRANSPARENT DOSSIER               */}
         {/* ==================================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 xl:gap-16 items-center">
-          
+
           {/* ------------------------------------------------------------------ */}
           {/* LEFT COLUMN: EXECUTIVE BUSINESSMAN PORTRAIT (5 COLS)                */}
           {/* ------------------------------------------------------------------ */}
           <div className="lg:col-span-5 flex flex-col items-center">
             <div className="w-full max-w-[460px] space-y-5 pointer-events-auto">
-              
+
               {/* Clean Museum-Grade Executive Portrait Frame with Enhanced Hover Glow */}
-              <div 
+              <div
                 ref={ceoImageRef}
                 className="relative rounded-2xl overflow-hidden border border-white/[0.12] transition-all duration-700 shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-[#0a0d14] group ceo-portrait-frame"
               >
                 <img
-                  src="/images/ceo-portrait.jpg"
-                  alt="Mr. Vivekkumar Mishra - Founder & CEO of Shivmax Real Estate Private Limited"
-                  className="w-full h-[520px] sm:h-[580px] object-cover object-top filter brightness-[1.02] contrast-[1.03] transition-all duration-700 ease-out"
+                  src="/images/ceo-vivek-mishra.jpg?v=real-ceo"
+                  alt="Mr. Vivek Mishra - Founder & CEO of Shivmax Real Estate Private Limited"
+                  className="w-full h-[520px] sm:h-[580px] lg:h-[600px] object-cover object-top filter brightness-[1.02] contrast-[1.03] transition-all duration-700 ease-out"
                 />
 
                 {/* Natural, subtle cinematic base vignette */}
@@ -158,7 +166,7 @@ export default function FounderCeoSection({
               <div className="space-y-2 text-left pt-1 px-1">
                 <div className="flex items-baseline justify-between gap-4">
                   <h3 className="text-2xl sm:text-3xl font-serif font-medium text-white tracking-tight">
-                    Mr. Vivekkumar Mishra
+                    Mr. Vivek Mishra
                   </h3>
                   <span className="text-[11px] font-mono text-[#d4af37] tracking-wider uppercase flex-shrink-0">
                     10+ Yrs Authority
@@ -166,7 +174,7 @@ export default function FounderCeoSection({
                 </div>
 
                 <div className="text-xs sm:text-[13px] font-cinzel font-semibold tracking-[0.18em] text-[#fbf5b7] uppercase">
-                  Founder &amp; Chief Executive Officer
+                  Founder &amp; CEO
                 </div>
 
                 <p className="text-xs text-slate-400 font-light tracking-wide">
@@ -214,17 +222,17 @@ export default function FounderCeoSection({
                 </h4>
               </div>
               <p className="text-xs sm:text-sm text-slate-300/85 leading-relaxed font-light max-w-2xl">
-                Mr. Mishra brings a decade of domain-only expertise at a PAN-India level, not just local knowledge — the foundation of the Shivmax model. His extensive relationships with apex developers, institutional financiers, and legal networks span major growth corridors across the nation.
+                With over 10 years of real estate experience, Mr. Vivek Mishra has built a strong reputation and trusted connections with top builders, property developers, and investors across India. His deep market knowledge and personal guidance give every franchise partner instant credibility and a clear path to closing profitable deals.
               </p>
             </div>
 
             {/* Visionary Direct Quote: Elegant Transparent Highlight */}
             <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#d4af37]/12 via-[#d4af37]/4 to-transparent border-l-2 border-[#d4af37] space-y-2 max-w-2xl">
               <p className="text-base sm:text-lg font-serif italic text-[#fbf5b7] leading-relaxed">
-                &ldquo;His personal handling and strategic insight are your direct competitive advantage.&rdquo;
+                &ldquo;His personal mentorship and proven strategies are your biggest advantage.&rdquo;
               </p>
               <p className="text-xs sm:text-sm text-slate-300/85 font-light leading-relaxed">
-                By joining Shivmax, franchisees gain a partner whose extensive network and time-tested strategies become instantly accessible — enabling immediate brand trust and project access in the Indian real estate market.
+                Partnering with Shivmax means having an experienced mentor by your side. You get instant access to top builder projects, immediate market trust, and proven ways to close profitable deals from Day One.
               </p>
             </div>
 

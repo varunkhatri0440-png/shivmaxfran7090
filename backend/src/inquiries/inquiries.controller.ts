@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CreateInquiryDto, InquiriesService, InquiryRecord } from './inquiries.service.js';
+import { AdminAuthGuard } from '../common/guards/admin-auth.guard.js';
 
 @Controller('api/inquiries')
 export class InquiriesController {
@@ -20,6 +21,7 @@ export class InquiriesController {
   }
 
   @Get()
+  @UseGuards(AdminAuthGuard)
   getAll(): InquiryRecord[] {
     return this.inquiriesService.findAll();
   }

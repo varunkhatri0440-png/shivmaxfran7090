@@ -83,7 +83,7 @@ export default function MobileHero({ onOpenBooking }: MobileHeroProps) {
   }, []);
 
   const scrollToCommitments = () => {
-    const el = document.getElementById('commitments');
+    const el = document.getElementById('advantage-breakdown');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -95,18 +95,16 @@ export default function MobileHero({ onOpenBooking }: MobileHeroProps) {
       <div className="sticky top-0 h-[100dvh] w-full overflow-hidden">
         {/* 1. Welcome Portal Reveal Layer (Behind Doors at z-10) */}
         <div
-          className={`transition-opacity duration-300 ${
-            isInView ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+          className={`transition-opacity duration-300 ${isInView ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
         >
           <PortalRevealLayer portalLayerRef={portalLayerRef} />
         </div>
 
         {/* 2. Sovereign Golden Trishula Parting Doors (Split Doors Layer at z-[15]) */}
         <div
-          className={`fixed inset-0 overflow-hidden pointer-events-none select-none z-[15] transition-opacity duration-300 ${
-            isInView ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`fixed inset-0 overflow-hidden pointer-events-none select-none z-[15] transition-opacity duration-300 ${isInView ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           {/* Left Half Door */}
           <div
@@ -181,7 +179,7 @@ export default function MobileHero({ onOpenBooking }: MobileHeroProps) {
             <div className="mt-3 flex items-center justify-center gap-2 text-[10px] sm:text-xs font-mono tracking-wider uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
               <div className="flex items-center gap-1.5 text-slate-200">
                 <span className="text-[#d4af37] font-semibold">Founder &amp; CEO:</span>
-                <span className="text-white font-medium">Mr. Vivekkumar Mishra</span>
+                <span className="text-white font-medium">Mr. Vivek Mishra</span>
               </div>
               <span className="text-[#d4af37]/70">•</span>
               <div className="flex items-center gap-1.5 text-slate-300">
@@ -219,7 +217,7 @@ export default function MobileHero({ onOpenBooking }: MobileHeroProps) {
                 onClick={scrollToCommitments}
                 className="px-6 sm:px-7 py-3 rounded-full text-xs font-medium tracking-[0.16em] uppercase text-[#f5e6ba] bg-[#0c0f16]/90 hover:bg-[#141824] border border-[#d4af37]/40 active:scale-[0.98] transition-all shadow-lg cursor-pointer flex items-center gap-2 whitespace-nowrap"
               >
-                <span>Explore 5 Commitments</span>
+                <span>Explore Franchise Model</span>
                 <ChevronRight className="w-3.5 h-3.5 text-[#d4af37]" />
               </button>
             </div>
