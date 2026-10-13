@@ -146,7 +146,7 @@ export default function LuxuryFooter({ onApply }: LuxuryFooterProps) {
                 <div className="text-slate-300 text-xs leading-relaxed font-light flex items-start gap-2 pt-0.5">
                   <MapPin className="w-4 h-4 text-[#d4af37] flex-shrink-0 mt-0.5" />
                   <span className="leading-relaxed">
-                    315, Lilleria Paramount, Manjalpur, Vadodara, Gujarat
+                    315-318, Lilleria Paramount, Manjalpur(390011), Vadodara, Gujarat
                   </span>
                 </div>
                 <div className="text-[10.5px] font-mono text-[#7a93b4] pt-2 border-t border-[#162033] flex items-center justify-between">
