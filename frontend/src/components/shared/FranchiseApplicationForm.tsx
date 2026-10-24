@@ -68,17 +68,24 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       data?: { referenceCode?: string };
     };
 
+    const fallbackCode = `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
+
     try {
       const apiPromise = submitInquiry({
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
+        city: formData.city,
+        category: effectiveCategory,
+        timeline: formData.timeline,
+        message: formData.message,
+        referenceCode: fallbackCode,
+        source: 'shivmax.com',
+        fax_number: formData.fax_number,
         propertyInterest: `Franchise Application: ${effectiveCategory} (${formData.city})`,
         specialRequests: formData.message ? `Notes: ${formData.message}` : 'Shivmax Franchise Consultation',
         tourType: 'Shivmax Franchise Consultation',
       });
-
-      const fallbackCode = `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
 
       const res = await Promise.race<ApiResponse>([
         apiPromise,
