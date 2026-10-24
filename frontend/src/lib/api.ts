@@ -279,13 +279,13 @@ export async function submitInquiry(payload: InquiryPayload): Promise<InquiryRes
   // 1. Primary: Dispatch to Shivmax CRM Webhook
   const crmApiUrl =
     process.env.NEXT_PUBLIC_CRM_API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
     'https://crm-shivmax.onrender.com/api';
 
   try {
     const crmRes = await fetch(`${crmApiUrl}/public/franchise-inquiry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
       body: JSON.stringify({
         fullName: payload.fullName,
         phone: payload.phone,
