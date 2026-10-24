@@ -280,7 +280,7 @@ export async function submitInquiry(payload: InquiryPayload): Promise<InquiryRes
   const crmApiUrl =
     process.env.NEXT_PUBLIC_CRM_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:5001/api';
+    'https://crm-shivmax.onrender.com/api';
 
   try {
     const crmRes = await fetch(`${crmApiUrl}/public/franchise-inquiry`, {
