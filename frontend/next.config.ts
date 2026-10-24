@@ -68,10 +68,10 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://images.unsplash.com",
               "media-src 'self' data: blob:",
-              "connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https://api.whatsapp.com https://images.unsplash.com",
+              "connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https://api.whatsapp.com https://images.unsplash.com https://crm-shivmax.onrender.com https://*.onrender.com https://client-rosy-omega-96.vercel.app",
               "frame-ancestors 'none'",
               "base-uri 'self'",
-              "form-action 'self' https://api.whatsapp.com",
+              "form-action 'self' https://api.whatsapp.com https://crm-shivmax.onrender.com",
             ].join('; '),
           },
           {
