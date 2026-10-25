@@ -373,3 +373,103 @@ export async function submitInquiry(payload: InquiryPayload): Promise<InquiryRes
     },
   };
 }
+
+export function getCrmApiUrl(): string {
+  let crmApiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
+  if (!crmApiUrl) {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      crmApiUrl = 'http://localhost:5001/api';
+    } else {
+      crmApiUrl = 'https://crm-shivmax.onrender.com/api';
+    }
+  }
+  return crmApiUrl;
+}
+
+export async function checkPhoneAlreadyApplied(phone: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${getCrmApiUrl()}/public/franchise-inquiry/check-phone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return !!data.exists;
+    }
+  } catch {}
+  return false;
+}
+
+export interface SendOtpResult {
+  success: boolean;
+  code?: string;
+  message?: string;
+  error?: string;
+}
+
+export async function sendFranchiseOtp(payload: InquiryPayload): Promise<SendOtpResult> {
+  const crmApiUrl = getCrmApiUrl();
+  try {
+    const res = await fetch(`${crmApiUrl}/public/franchise-inquiry/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return {
+        success: false,
+        code: data?.code,
+        error: data?.error || 'Could not dispatch verification code.',
+      };
+    }
+    return {
+      success: true,
+      message: data?.message || 'Verification code sent.',
+    };
+  } catch {
+    return {
+      success: false,
+      error: 'Network connection error. Please try again.',
+    };
+  }
+}
+
+export interface VerifyOtpResult {
+  success: boolean;
+  code?: string;
+  error?: string;
+  data?: {
+    id?: string;
+    referenceCode?: string;
+  };
+}
+
+export async function verifyFranchiseOtp(phone: string, otp: string): Promise<VerifyOtpResult> {
+  const crmApiUrl = getCrmApiUrl();
+  try {
+    const res = await fetch(`${crmApiUrl}/public/franchise-inquiry/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return {
+        success: false,
+        code: data?.code,
+        error: data?.error || 'Invalid verification PIN.',
+      };
+    }
+    return {
+      success: true,
+      data: data?.data,
+    };
+  } catch {
+    return {
+      success: false,
+      error: 'Network connection error. Please try again.',
+    };
+  }
+}

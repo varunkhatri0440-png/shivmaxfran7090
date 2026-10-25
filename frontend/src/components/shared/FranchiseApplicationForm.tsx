@@ -1,8 +1,19 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, ChevronDown, Check, AlertCircle, ExternalLink } from 'lucide-react';
-import { submitInquiry } from '@/lib/api';
+import {
+  Send,
+  ChevronDown,
+  Check,
+  AlertCircle,
+  ExternalLink,
+  ShieldCheck,
+  KeyRound,
+  RefreshCw,
+  ArrowLeft,
+  MessageCircle,
+} from 'lucide-react';
+import { sendFranchiseOtp, verifyFranchiseOtp, submitInquiry } from '@/lib/api';
 import { redirectToWhatsApp, getWhatsAppUrl } from '@/lib/whatsapp';
 
 const PROFILE_CATEGORIES = [
@@ -31,10 +42,35 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Flow states: 'form' | 'otp' | 'already_applied' | 'verified'
+  const [viewState, setViewState] = useState<'form' | 'otp' | 'already_applied' | 'verified'>('form');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string>('');
+  const [otpError, setOtpError] = useState<string>('');
   const [successUrl, setSuccessUrl] = useState<string | null>(null);
+
+  // 6-digit OTP input state
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Cooldown timer for resending OTP
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Pre-opened window reference to eliminate popup-blocker issues on desktop
+  const preOpenedWinRef = useRef<Window | null>(null);
+
+  // Handle countdown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // Close category dropdown on click outside
   useEffect(() => {
@@ -60,8 +96,8 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
     }
 
     const digitsOnly = formData.phone.replace(/[^0-9]/g, '');
-    if (!digitsOnly || digitsOnly.length < 7) {
-      errors.phone = 'Please enter a valid phone number with at least 7 digits';
+    if (!digitsOnly || digitsOnly.length < 10) {
+      errors.phone = 'Please enter a valid 10-digit mobile number';
     }
 
     if (!formData.email.trim() || !formData.email.includes('@') || !formData.email.includes('.')) {
@@ -82,7 +118,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       const firstKey = Object.keys(errors)[0];
       setGeneralError(errors[firstKey]);
 
-      // Focus the first invalid input
       const inputId = isMobile ? `mobile-franchise-${firstKey}` : `desktop-franchise-${firstKey}`;
       const el = document.getElementById(inputId);
       if (el) el.focus();
@@ -107,152 +142,412 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
     }
   };
 
-  const submitApplication = async (preOpenedWindow?: Window | null) => {
+  /**
+   * STEP 1: Applicant clicks Submit.
+   * Validates form, checks duplication, and dispatches real 6-digit OTP.
+   */
+  const handleInitiateSubmission = async () => {
     const isValid = validate();
-    if (!isValid) {
-      if (preOpenedWindow && !preOpenedWindow.closed) {
-        try {
-          preOpenedWindow.close();
-        } catch {}
-      }
-      return;
-    }
+    if (!isValid) return;
 
     setIsSubmitting(true);
     setGeneralError('');
 
-    const fallbackCode = `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
-    const submissionData = {
+    // Pre-open window synchronously during user click to defeat desktop popup blockers
+    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    if (!isMobileDevice && typeof window !== 'undefined') {
+      try {
+        preOpenedWinRef.current = window.open('about:blank', '_blank');
+      } catch (err) {
+        console.warn('Pre-open tab blocked:', err);
+      }
+    }
+
+    const payload = {
       fullName: formData.fullName.trim(),
-      email: formData.email.trim(),
       phone: formData.phone.trim(),
+      email: formData.email.trim(),
       city: formData.city.trim(),
       category: effectiveCategory,
       timeline: formData.timeline,
       message: formData.message.trim(),
-      referenceCode: fallbackCode,
       source: 'shivmax.com',
       propertyInterest: `Franchise Application: ${effectiveCategory} (${formData.city.trim()})`,
       specialRequests: formData.message.trim() ? `Notes: ${formData.message.trim()}` : 'Shivmax Franchise Consultation',
       tourType: 'Shivmax Franchise Consultation',
     };
 
-    // 1. Immediately cache locally in browser
-    if (typeof window !== 'undefined') {
-      try {
-        const cacheKey = 'shivmax_franchise_inquiries_cache';
-        const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-        existing.unshift({
-          ...submissionData,
-          submittedAt: new Date().toISOString(),
-        });
-        localStorage.setItem(cacheKey, JSON.stringify(existing.slice(0, 50)));
-      } catch {}
-    }
-
-    // 2. Immediate Background Beacon (survives redirects, zero latency)
-    let crmApiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
-    if (!crmApiUrl) {
-      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        crmApiUrl = 'http://localhost:5001/api';
-      } else {
-        crmApiUrl = 'https://crm-shivmax.onrender.com/api';
-      }
-    }
-
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      try {
-        const beaconBlob = new Blob([JSON.stringify(submissionData)], { type: 'application/json' });
-        navigator.sendBeacon(`${crmApiUrl}/public/franchise-inquiry`, beaconBlob);
-      } catch {}
-    }
-
-    // 3. Fast CRM API Sync with rapid 1.2s timeout so applicant is never kept waiting
-    let finalCode = fallbackCode;
     try {
-      type ApiRes = { success: boolean; data?: { referenceCode?: string } };
-      const res = await Promise.race<ApiRes>([
-        submitInquiry(submissionData),
-        new Promise<ApiRes>((resolve) =>
-          setTimeout(() => resolve({ success: true, data: { referenceCode: fallbackCode } }), 1200)
-        ),
-      ]);
-      if (res?.data?.referenceCode) {
-        finalCode = res.data.referenceCode;
-      }
-    } catch (syncErr) {
-      console.warn('Proceeding with verified WhatsApp dispatch:', syncErr);
-    }
+      const res = await sendFranchiseOtp(payload);
 
-    const finalUrl = getWhatsAppUrl({
-      fullName: submissionData.fullName,
-      phone: submissionData.phone,
-      email: submissionData.email,
-      city: submissionData.city,
+      if (!res.success) {
+        // Close pre-opened window if not proceeding
+        if (preOpenedWinRef.current && !preOpenedWinRef.current.closed) {
+          try {
+            preOpenedWinRef.current.close();
+          } catch {}
+        }
+
+        if (res.code === 'ALREADY_SUBMITTED') {
+          setViewState('already_applied');
+          setIsSubmitting(false);
+          return;
+        }
+
+        setGeneralError(res.error || 'Could not dispatch verification code. Please check your details.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Success: Proceed to OTP verification screen
+      setViewState('otp');
+      setResendCooldown(45);
+      setOtpError('');
+      setOtpDigits(['', '', '', '', '', '']);
+
+      // Focus first OTP digit box after render
+      setTimeout(() => {
+        if (otpInputRefs.current[0]) {
+          otpInputRefs.current[0].focus();
+        }
+      }, 150);
+    } catch {
+      setGeneralError('Network error connecting to verification desk. Please retry.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  /**
+   * Resend 6-digit OTP PIN
+   */
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setOtpError('');
+
+    const payload = {
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email.trim(),
+      city: formData.city.trim(),
       category: effectiveCategory,
-      timeline: submissionData.timeline,
-      message: submissionData.message,
-      referenceCode: finalCode,
-    });
+      timeline: formData.timeline,
+      message: formData.message.trim(),
+      source: 'shivmax.com',
+    };
 
-    setSuccessUrl(finalUrl);
+    const res = await sendFranchiseOtp(payload);
+    if (res.success) {
+      setResendCooldown(60);
+      setOtpError('');
+    } else {
+      setOtpError(res.error || 'Could not resend verification PIN. Please wait a moment.');
+    }
+  };
 
-    // 4. Redirect to WhatsApp without popup blocker issues
-    redirectToWhatsApp(
-      {
-        fullName: submissionData.fullName,
-        phone: submissionData.phone,
-        email: submissionData.email,
-        city: submissionData.city,
+  /**
+   * STEP 2: Verify 6-digit OTP entered by applicant
+   */
+  const handleVerifyOtp = async () => {
+    const fullOtp = otpDigits.join('').trim();
+    if (fullOtp.length !== 6) {
+      setOtpError('Please enter the full 6-digit verification code.');
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError('');
+
+    try {
+      const res = await verifyFranchiseOtp(formData.phone.trim(), fullOtp);
+
+      if (!res.success) {
+        setOtpError(res.error || 'Incorrect verification PIN. Please try again.');
+        setIsVerifying(false);
+        return;
+      }
+
+      // Verified successfully!
+      setViewState('verified');
+
+      const finalUrl = getWhatsAppUrl({
+        fullName: formData.fullName.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        city: formData.city.trim(),
         category: effectiveCategory,
-        timeline: submissionData.timeline,
-        message: submissionData.message,
-        referenceCode: finalCode,
-      },
-      preOpenedWindow
+        timeline: formData.timeline,
+        message: formData.message.trim(),
+      });
+
+      setSuccessUrl(finalUrl);
+
+      // Cache locally
+      if (typeof window !== 'undefined') {
+        try {
+          const cacheKey = 'shivmax_franchise_inquiries_cache';
+          const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+          existing.unshift({
+            ...formData,
+            category: effectiveCategory,
+            verified: true,
+            submittedAt: new Date().toISOString(),
+          });
+          localStorage.setItem(cacheKey, JSON.stringify(existing.slice(0, 50)));
+        } catch {}
+      }
+
+      // Direct to WhatsApp
+      redirectToWhatsApp(
+        {
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
+          city: formData.city.trim(),
+          category: effectiveCategory,
+          timeline: formData.timeline,
+          message: formData.message.trim(),
+        },
+        preOpenedWinRef.current
+      );
+    } catch {
+      setOtpError('Connection error verifying PIN. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  /**
+   * OTP input handlers (support paste, arrow keys, backspace)
+   */
+  const handleOtpChange = (index: number, val: string) => {
+    const cleaned = val.replace(/[^0-9]/g, '');
+    if (cleaned.length > 1) {
+      // User pasted full OTP
+      const pasted = cleaned.slice(0, 6).split('');
+      const newDigits = [...otpDigits];
+      pasted.forEach((d, i) => {
+        if (i < 6) newDigits[i] = d;
+      });
+      setOtpDigits(newDigits);
+      const nextFocus = Math.min(5, pasted.length);
+      otpInputRefs.current[nextFocus]?.focus();
+      return;
+    }
+
+    const newDigits = [...otpDigits];
+    newDigits[index] = cleaned;
+    setOtpDigits(newDigits);
+    setOtpError('');
+
+    if (cleaned && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'Enter') {
+      handleVerifyOtp();
+    }
+  };
+
+  // =========================================================================
+  // VIEW: ALREADY APPLIED (Prevents duplicate submissions permanently)
+  // =========================================================================
+  if (viewState === 'already_applied') {
+    const directWhatsAppDesk =
+      'https://api.whatsapp.com/send?phone=918160351486&text=' +
+      encodeURIComponent(
+        `🔱 *SHIVMAX REAL ESTATE* 🔱\nHello Executive Desk, my name is ${formData.fullName.trim()} (${formData.phone.trim()}). I have already submitted my official Franchise Application and would like to request an update on my review file.`
+      );
+
+    return (
+      <div className="p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/40 text-left space-y-5 animate-in fade-in duration-300 shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37]">
+            <ShieldCheck className="w-5 h-5 text-[#d4af37]" />
+          </div>
+          <div>
+            <h3 className="text-base font-serif font-bold text-white">Application Already Registered</h3>
+            <p className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]">Single-Review Guarantee Active</p>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-300 leading-relaxed font-light">
+          An official franchise application is already recorded in the Shivmax Directorate for this mobile number (
+          <span className="text-[#fbf5b7] font-mono font-medium">{formData.phone}</span>).
+        </p>
+
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-slate-400 space-y-1">
+          <div className="text-[#fbf5b7] font-medium">&bull; 1 Application Per Candidate Policy</div>
+          <p className="text-[11px] leading-relaxed">
+            To guarantee direct, personal evaluation by Mr. Vivek Mishra, duplicate submissions are restricted. Your dossier is currently under executive review.
+          </p>
+        </div>
+
+        <div className="space-y-2 pt-2">
+          <a
+            href={directWhatsAppDesk}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4 text-black" />
+            <span>Connect Directly with Executive Desk</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={() => setViewState('form')}
+            className="w-full py-2.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white transition-colors cursor-pointer text-center"
+          >
+            &larr; Use a Different Contact Number
+          </button>
+        </div>
+      </div>
     );
+  }
 
-    setIsSubmitting(false);
-  };
+  // =========================================================================
+  // VIEW: 6-DIGIT OTP VERIFICATION MODAL / SCREEN
+  // =========================================================================
+  if (viewState === 'otp') {
+    return (
+      <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-[#0c1017] via-[#080a0f] to-[#0e1219] border border-[#d4af37]/50 text-left space-y-5 animate-in fade-in duration-300 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2.5">
+            <KeyRound className="w-4 h-4 text-[#d4af37]" />
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#d4af37]">
+              Identity Verification PIN
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (preOpenedWinRef.current && !preOpenedWinRef.current.closed) {
+                try {
+                  preOpenedWinRef.current.close();
+                } catch {}
+              }
+              setViewState('form');
+            }}
+            className="text-[11px] font-mono text-slate-400 hover:text-[#d4af37] transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            <span>Edit Details</span>
+          </button>
+        </div>
 
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+        <div className="space-y-1">
+          <h3 className="text-lg font-serif text-white">Enter Verification Code</h3>
+          <p className="text-xs text-slate-300 leading-relaxed font-light">
+            We sent a 6-digit confirmation PIN to{' '}
+            <span className="text-[#fbf5b7] font-medium font-mono">{formData.email}</span>. Please enter it below to confirm your genuine franchise candidacy.
+          </p>
+        </div>
 
-    // Defeat popup blockers on PC browsers: Open a window synchronously during the user click event
-    let preOpenedWindow: Window | null = null;
-    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-    if (!isMobileDevice && typeof window !== 'undefined') {
-      try {
-        preOpenedWindow = window.open('about:blank', '_blank');
-      } catch (err) {
-        console.warn('Synchronous popup open prevented:', err);
-      }
-    }
+        {otpError && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span>{otpError}</span>
+          </div>
+        )}
 
-    submitApplication(preOpenedWindow);
-  };
+        {/* 6 Individual PIN Input Boxes */}
+        <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
+          {otpDigits.map((digit, idx) => (
+            <input
+              key={idx}
+              ref={(el) => {
+                otpInputRefs.current[idx] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={digit}
+              onChange={(e) => handleOtpChange(idx, e.target.value)}
+              onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+              className="w-11 sm:w-12 h-13 sm:h-14 text-center text-xl font-mono font-bold text-white bg-[#05070c] border border-[#d4af37]/40 focus:border-[#d4af37] focus:shadow-[0_0_15px_rgba(212,175,55,0.4)] rounded-xl outline-none transition-all"
+            />
+          ))}
+        </div>
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+        <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
+          <span>Valid for 10 minutes</span>
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={resendCooldown > 0}
+            className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+              resendCooldown > 0 ? 'text-slate-600 cursor-not-allowed' : 'text-[#d4af37] hover:text-[#fbf5b7] underline'
+            }`}
+          >
+            <RefreshCw className={`w-3 h-3 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
+            <span>{resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}</span>
+          </button>
+        </div>
 
-    let preOpenedWindow: Window | null = null;
-    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-    if (!isMobileDevice && typeof window !== 'undefined') {
-      try {
-        preOpenedWindow = window.open('about:blank', '_blank');
-      } catch (err) {
-        console.warn('Synchronous popup open prevented:', err);
-      }
-    }
+        <button
+          type="button"
+          onClick={handleVerifyOtp}
+          disabled={isVerifying || otpDigits.join('').length !== 6}
+          className="w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2"
+        >
+          {isVerifying ? (
+            <span>Confirming Identity...</span>
+          ) : (
+            <>
+              <Check className="w-4 h-4 text-black stroke-[3]" />
+              <span>Verify &amp; Connect to WhatsApp Desk</span>
+            </>
+          )}
+        </button>
 
-    submitApplication(preOpenedWindow);
-  };
+        <p className="text-[10px] text-center text-slate-400">
+          Protected by Shivmax Non-Disclosure &bull; 100% Confidential
+        </p>
+      </div>
+    );
+  }
 
+  // =========================================================================
+  // VIEW: VERIFIED SUCCESS
+  // =========================================================================
+  if (viewState === 'verified') {
+    return (
+      <div className="p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/60 text-center space-y-4 animate-in fade-in duration-300 shadow-2xl">
+        <div className="w-12 h-12 rounded-full bg-[#d4af37]/20 border border-[#d4af37] flex items-center justify-center mx-auto text-[#d4af37]">
+          <Check className="w-6 h-6 stroke-[3]" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-lg font-serif text-white">Identity Verified Successfully</h3>
+          <p className="text-xs text-slate-300">Connecting you to the Executive WhatsApp Desk...</p>
+        </div>
+        {successUrl && (
+          <div className="pt-2">
+            <a
+              href={successUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#d4af37] text-black font-semibold text-xs uppercase tracking-wider hover:brightness-110 transition-all"
+            >
+              <span>Click Here if WhatsApp Did Not Open</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW: PRIMARY FORM (Mobile & Desktop with OTP Verification Trigger)
+  // =========================================================================
   if (isMobile) {
     return (
-      <form noValidate onSubmit={handleFormSubmit} className="space-y-3.5 text-left">
+      <form noValidate onSubmit={(e) => { e.preventDefault(); handleInitiateSubmission(); }} className="space-y-3.5 text-left">
         {generalError && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-500/50 text-red-300 text-xs animate-in fade-in">
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
@@ -264,12 +559,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           <input
             id="mobile-franchise-fullName"
             type="text"
-            aria-label="Full Name"
             placeholder="Full Name *"
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
             className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.fullName ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.fullName ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
             } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
           />
           {fieldErrors.fullName && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.fullName}</p>}
@@ -279,12 +573,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           <input
             id="mobile-franchise-phone"
             type="tel"
-            aria-label="Mobile Number (WhatsApp)"
             placeholder="Mobile Number (WhatsApp) *"
             value={formData.phone}
             onChange={(e) => handleFieldChange('phone', e.target.value)}
             className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.phone ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.phone ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
             } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-mono`}
           />
           {fieldErrors.phone && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.phone}</p>}
@@ -294,12 +587,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           <input
             id="mobile-franchise-email"
             type="email"
-            aria-label="Email Address"
-            placeholder="Email Address *"
+            placeholder="Email Address (For Verification PIN) *"
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
             className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.email ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.email ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
             } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
           />
           {fieldErrors.email && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.email}</p>}
@@ -309,12 +601,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           <input
             id="mobile-franchise-city"
             type="text"
-            aria-label="Target City"
             placeholder="Target City *"
             value={formData.city}
             onChange={(e) => handleFieldChange('city', e.target.value)}
             className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.city ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.city ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
             } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
           />
           {fieldErrors.city && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.city}</p>}
@@ -326,9 +617,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             type="button"
             role="combobox"
             aria-expanded={isCategoryOpen}
-            aria-controls="mobile-category-list"
-            aria-haspopup="listbox"
-            aria-label="Select Profile Category"
             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             className="w-full px-3.5 py-3 rounded-xl bg-[#0a0d14] border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-xs text-white transition-all cursor-pointer flex items-center justify-between"
           >
@@ -338,9 +626,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
           {isCategoryOpen && (
             <div
-              id="mobile-category-list"
               role="listbox"
-              aria-label="Profile Categories"
               className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[320px] overflow-y-auto overscroll-contain"
             >
               {PROFILE_CATEGORIES.map((cat) => {
@@ -375,12 +661,11 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             <input
               id="mobile-franchise-customCategory"
               type="text"
-              aria-label="Specify your background or profession"
               placeholder="Please specify your profession or background *"
               value={formData.customCategory}
               onChange={(e) => handleFieldChange('customCategory', e.target.value)}
               className={`w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border ${
-                fieldErrors.customCategory ? 'border-red-500/80 focus:border-red-500' : 'border-[#d4af37]/50 focus:border-[#d4af37]'
+                fieldErrors.customCategory ? 'border-red-500/80' : 'border-[#d4af37]/50'
               } text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
             />
             {fieldErrors.customCategory && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.customCategory}</p>}
@@ -389,39 +674,26 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
         <button
           type="button"
-          onClick={handleButtonClick}
+          onClick={handleInitiateSubmission}
           disabled={isSubmitting}
           className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] to-[#fbf5b7] hover:brightness-110 active:scale-[0.99] transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 pointer-events-auto select-auto"
         >
           {isSubmitting ? (
-            <span>Connecting to WhatsApp...</span>
+            <span>Verifying Application Eligibility...</span>
           ) : (
             <>
               <Send className="w-3.5 h-3.5 text-black" />
-              <span>Submit to Executive WhatsApp Desk</span>
+              <span>Verify Mobile &amp; Connect to WhatsApp Desk</span>
             </>
           )}
         </button>
-
-        {successUrl && (
-          <div className="pt-1 text-center">
-            <a
-              href={successUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-[#fbf5b7] hover:text-white underline underline-offset-4"
-            >
-              <span>Click here if WhatsApp did not open automatically</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        )}
       </form>
     );
   }
 
+  // DESKTOP PRIMARY FORM
   return (
-    <form noValidate onSubmit={handleFormSubmit} className="space-y-3.5 xl:space-y-4 text-left">
+    <form noValidate onSubmit={(e) => { e.preventDefault(); handleInitiateSubmission(); }} className="space-y-3.5 xl:space-y-4 text-left">
       {/* Visual Validation Notice */}
       {generalError && (
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in duration-200 shadow-lg">
@@ -443,7 +715,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
             className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.fullName ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.fullName ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
             } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
           {fieldErrors.fullName && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.fullName}</p>}
@@ -461,7 +733,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             value={formData.phone}
             onChange={(e) => handleFieldChange('phone', e.target.value)}
             className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.phone ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.phone ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
             } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all font-mono`}
           />
           {fieldErrors.phone && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.phone}</p>}
@@ -472,7 +744,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         {/* Email */}
         <div className="space-y-1">
           <label htmlFor="desktop-franchise-email" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
-            Email Address *
+            Email Address (For Verification PIN) *
           </label>
           <input
             id="desktop-franchise-email"
@@ -481,7 +753,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
             className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.email ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.email ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
             } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
           {fieldErrors.email && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.email}</p>}
@@ -499,7 +771,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             value={formData.city}
             onChange={(e) => handleFieldChange('city', e.target.value)}
             className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.city ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+              fieldErrors.city ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
             } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
           {fieldErrors.city && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.city}</p>}
@@ -517,8 +789,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             role="combobox"
             aria-labelledby="desktop-franchise-category-label"
             aria-expanded={isCategoryOpen}
-            aria-controls="desktop-category-list"
-            aria-haspopup="listbox"
             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             className="w-full px-4 py-2.5 rounded-xl bg-[#0a0d14] border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-base sm:text-xs text-white transition-all cursor-pointer flex items-center justify-between shadow-inner"
           >
@@ -528,9 +798,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
           {isCategoryOpen && (
             <div
-              id="desktop-category-list"
               role="listbox"
-              aria-labelledby="desktop-franchise-category-label"
               className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[260px] overflow-y-auto overscroll-contain"
             >
               {PROFILE_CATEGORIES.map((cat) => {
@@ -560,18 +828,16 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           )}
         </div>
 
-        {/* Custom Profile Specification Field */}
         {formData.category === 'Other / Custom Profile' && (
           <div className="pt-1.5 animate-in fade-in duration-200">
             <input
               id="desktop-franchise-customCategory"
               type="text"
-              aria-label="Specify your background or profession"
               placeholder="Specify your background / profession (e.g. Doctor, Architect, Consultant)..."
               value={formData.customCategory}
               onChange={(e) => handleFieldChange('customCategory', e.target.value)}
               className={`w-full px-4 py-2 rounded-xl bg-white/[0.04] border ${
-                fieldErrors.customCategory ? 'border-red-500/80 focus:border-red-500' : 'border-[#d4af37]/40 focus:border-[#d4af37]'
+                fieldErrors.customCategory ? 'border-red-500/80' : 'border-[#d4af37]/40'
               } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
             />
             {fieldErrors.customCategory && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.customCategory}</p>}
@@ -597,12 +863,12 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       {/* Submit Button */}
       <button
         type="button"
-        onClick={handleButtonClick}
+        onClick={handleInitiateSubmission}
         disabled={isSubmitting}
         className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_30px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
       >
         {isSubmitting ? (
-          <span>Connecting to WhatsApp Desk...</span>
+          <span>Verifying Application Eligibility...</span>
         ) : (
           <>
             <Send className="w-3.5 h-3.5 text-black" />
@@ -610,20 +876,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           </>
         )}
       </button>
-
-      {successUrl && (
-        <div className="pt-1 text-center animate-in fade-in">
-          <a
-            href={successUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-[#fbf5b7] hover:text-white underline underline-offset-4"
-          >
-            <span>Click here if WhatsApp did not open automatically</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        </div>
-      )}
 
       <p className="text-[10.5px] text-center text-slate-400 font-light">
         Protected by Shivmax Non-Disclosure &bull; 100% Confidential Direct Desk Review
