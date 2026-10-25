@@ -97,7 +97,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
                 message: 'Application recorded. Connecting to WhatsApp...',
                 data: { referenceCode: fallbackCode },
               }),
-            2500
+            6000
           )
         ),
       ]);

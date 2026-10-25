@@ -276,35 +276,66 @@ export async function fetchStats(): Promise<StatsData> {
 export async function submitInquiry(payload: InquiryPayload): Promise<InquiryResponse> {
   const randomCode = payload.referenceCode || `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // 1. Primary: Dispatch to Shivmax CRM Webhook
-  const crmApiUrl =
-    process.env.NEXT_PUBLIC_CRM_API_URL ||
-    'https://crm-shivmax.onrender.com/api';
+  // 1. Determine CRM endpoint dynamically
+  let crmApiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
+  if (!crmApiUrl) {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      crmApiUrl = 'http://localhost:5001/api';
+    } else {
+      crmApiUrl = 'https://crm-shivmax.onrender.com/api';
+    }
+  }
 
+  const inquiryData = {
+    fullName: payload.fullName,
+    phone: payload.phone,
+    email: payload.email,
+    city: payload.city || 'Vadodara, Gujarat',
+    category: payload.category || 'Salaried Professional',
+    timeline: payload.timeline || 'Immediate',
+    message: payload.message || payload.specialRequests || '',
+    referenceCode: randomCode,
+    source: payload.source || 'shivmax.com',
+    fax_number: payload.fax_number || '',
+  };
+
+  // 2. Client-side local offline backup (Guarantees inquiry is saved locally)
+  if (typeof window !== 'undefined') {
+    try {
+      const cacheKey = 'shivmax_franchise_inquiries_cache';
+      const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      existing.unshift({
+        ...inquiryData,
+        submittedAt: new Date().toISOString(),
+      });
+      localStorage.setItem(cacheKey, JSON.stringify(existing.slice(0, 50)));
+    } catch {}
+  }
+
+  // 3. Dispatch Background Beacon (OS/browser level guarantee that survives redirects)
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    try {
+      const beaconBlob = new Blob([JSON.stringify(inquiryData)], { type: 'application/json' });
+      navigator.sendBeacon(`${crmApiUrl}/public/franchise-inquiry`, beaconBlob);
+    } catch (bErr) {
+      // Handled via fetch below
+    }
+  }
+
+  // 4. Primary: Dispatch to Shivmax CRM Webhook via fetch with keepalive
   try {
     const crmRes = await fetch(`${crmApiUrl}/public/franchise-inquiry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       keepalive: true,
-      body: JSON.stringify({
-        fullName: payload.fullName,
-        phone: payload.phone,
-        email: payload.email,
-        city: payload.city || 'Vadodara, Gujarat',
-        category: payload.category || 'Salaried Professional',
-        timeline: payload.timeline || 'Immediate',
-        message: payload.message || payload.specialRequests || '',
-        referenceCode: randomCode,
-        source: payload.source || 'shivmax.com',
-        fax_number: payload.fax_number || '',
-      }),
+      body: JSON.stringify(inquiryData),
     });
 
     if (crmRes.ok) {
       const crmData = await crmRes.json();
       return {
         success: true,
-        message: 'Application recorded in Shivmax CRM.',
+        message: 'Application recorded permanently in Shivmax CRM.',
         data: {
           referenceCode: crmData?.data?.referenceCode || randomCode,
           status: 'Confirmed',
@@ -314,7 +345,7 @@ export async function submitInquiry(payload: InquiryPayload): Promise<InquiryRes
       };
     }
   } catch (crmErr) {
-    console.warn('CRM Webhook sync error, continuing seamlessly:', crmErr);
+    console.warn('CRM Webhook direct sync error, background beacon active:', crmErr);
   }
 
   // 2. Fallback: Also try legacy NestJS endpoint if available
