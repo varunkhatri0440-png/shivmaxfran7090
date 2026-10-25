@@ -300,16 +300,33 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
   /**
    * OTP input handlers (support paste, arrow keys, backspace)
    */
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+    if (pastedData) {
+      const chars = pastedData.slice(0, 6).split('');
+      const newDigits = [...otpDigits];
+      chars.forEach((c, i) => {
+        if (i < 6) newDigits[i] = c;
+      });
+      setOtpDigits(newDigits);
+      setOtpError('');
+      const focusIndex = Math.min(5, chars.length);
+      otpInputRefs.current[focusIndex]?.focus();
+    }
+  };
+
   const handleOtpChange = (index: number, val: string) => {
     const cleaned = val.replace(/[^0-9]/g, '');
     if (cleaned.length > 1) {
-      // User pasted full OTP
+      // User pasted full OTP into input
       const pasted = cleaned.slice(0, 6).split('');
       const newDigits = [...otpDigits];
       pasted.forEach((d, i) => {
         if (i < 6) newDigits[i] = d;
       });
       setOtpDigits(newDigits);
+      setOtpError('');
       const nextFocus = Math.min(5, pasted.length);
       otpInputRefs.current[nextFocus]?.focus();
       return;
@@ -344,14 +361,14 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       );
 
     return (
-      <div className="p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/40 text-left space-y-5 animate-in fade-in duration-300 shadow-2xl">
+      <div className="p-4 sm:p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/40 text-left space-y-4 sm:space-y-5 animate-in fade-in duration-300 shadow-2xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37]">
+          <div className="w-10 h-10 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37] shrink-0">
             <ShieldCheck className="w-5 h-5 text-[#d4af37]" />
           </div>
           <div>
-            <h3 className="text-base font-serif font-bold text-white">Application Already Registered</h3>
-            <p className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]">Single-Review Guarantee Active</p>
+            <h3 className="text-base sm:text-lg font-serif font-bold text-white">Application Already Registered</h3>
+            <p className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-[#d4af37]">Single-Review Guarantee Active</p>
           </div>
         </div>
 
@@ -360,22 +377,22 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           <span className="text-[#fbf5b7] font-mono font-medium">{formData.phone}</span>).
         </p>
 
-        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-slate-400 space-y-1">
+        <div className="p-3 sm:p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-slate-400 space-y-1">
           <div className="text-[#fbf5b7] font-medium">&bull; 1 Application Per Candidate Policy</div>
           <p className="text-[11px] leading-relaxed">
             To guarantee direct, personal evaluation by Mr. Vivek Mishra, duplicate submissions are restricted. Your dossier is currently under executive review.
           </p>
         </div>
 
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2 pt-1">
           <a
             href={directWhatsAppDesk}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2"
+            className="w-full min-h-[46px] py-3 px-3 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 text-center"
           >
-            <MessageCircle className="w-4 h-4 text-black" />
-            <span>Connect Directly with Executive Desk</span>
+            <MessageCircle className="w-4 h-4 text-black shrink-0" />
+            <span className="truncate">Connect Directly with Executive Desk</span>
           </a>
 
           <button
@@ -391,96 +408,116 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
   }
 
   // =========================================================================
-  // VIEW: 6-DIGIT OTP VERIFICATION MODAL / SCREEN
+  // VIEW: 6-DIGIT OTP VERIFICATION MODAL / SCREEN (100% Responsive Grid)
   // =========================================================================
   if (viewState === 'otp') {
     return (
-      <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-[#0c1017] via-[#080a0f] to-[#0e1219] border border-[#d4af37]/50 text-left space-y-5 animate-in fade-in duration-300 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-          <div className="flex items-center gap-2.5">
-            <KeyRound className="w-4 h-4 text-[#d4af37]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#d4af37]">
-              Identity Verification PIN
-            </span>
+      <div className="w-full text-left space-y-4 sm:space-y-5 animate-in fade-in duration-300">
+        <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c1017] via-[#080a0f] to-[#0e1219] border border-[#d4af37]/45 space-y-4 sm:space-y-5 shadow-2xl">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-[#d4af37] shrink-0" />
+              <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest text-[#d4af37]">
+                Identity Verification PIN
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setViewState('form')}
+              className="text-[11px] font-mono text-slate-400 hover:text-[#d4af37] transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              <span>Edit Details</span>
+            </button>
           </div>
+
+          {/* Prompt description */}
+          <div className="space-y-1">
+            <h3 className="text-base sm:text-lg font-serif text-white font-bold">
+              Enter 6-Digit Verification PIN
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed font-light">
+              We sent a 6-digit confirmation code to{' '}
+              <span className="text-[#fbf5b7] font-medium font-mono break-all">{formData.email}</span>. Please enter it below to confirm your genuine franchise candidacy.
+            </p>
+          </div>
+
+          {otpError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span className="leading-snug">{otpError}</span>
+            </div>
+          )}
+
+          {/* 6 Individual PIN Input Boxes - Fluid 6-Col Grid guarantees 0 overflow */}
+          <div className="w-full max-w-sm sm:max-w-md mx-auto py-1">
+            <div className="grid grid-cols-6 gap-1.5 xs:gap-2 sm:gap-2.5 w-full">
+              {otpDigits.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => {
+                    otpInputRefs.current[idx] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  onPaste={handleOtpPaste}
+                  onFocus={(e) => e.target.select()}
+                  aria-label={`Verification PIN digit ${idx + 1}`}
+                  className="w-full aspect-[4/5] sm:aspect-square max-h-13 sm:max-h-14 text-center text-lg sm:text-2xl font-mono font-bold text-[#fbf5b7] bg-[#05070c] border border-[#d4af37]/40 focus:border-[#d4af37] focus:bg-[#0c1017] focus:shadow-[0_0_15px_rgba(212,175,55,0.4)] rounded-lg sm:rounded-xl outline-none transition-all flex items-center justify-center select-all"
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Validity & Resend */}
+          <div className="flex items-center justify-between gap-2 flex-wrap text-[11px] sm:text-xs font-mono text-slate-400 pt-0.5">
+            <span className="flex items-center gap-1 text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Valid for 10 min
+            </span>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendCooldown > 0}
+              className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+                resendCooldown > 0 ? 'text-slate-500 cursor-not-allowed' : 'text-[#d4af37] hover:text-[#fbf5b7] underline'
+              }`}
+            >
+              <RefreshCw className={`w-3 h-3 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
+              <span>{resendCooldown > 0 ? `Resend PIN in ${resendCooldown}s` : 'Resend PIN'}</span>
+            </button>
+          </div>
+
+          {/* Verification Submit Button */}
           <button
             type="button"
-            onClick={() => setViewState('form')}
-            className="text-[11px] font-mono text-slate-400 hover:text-[#d4af37] transition-colors flex items-center gap-1 cursor-pointer"
+            onClick={handleVerifyOtp}
+            disabled={isVerifying || otpDigits.join('').length !== 6}
+            className="w-full min-h-[48px] py-3.5 px-4 rounded-xl text-xs font-bold tracking-[0.16em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2"
           >
-            <ArrowLeft className="w-3 h-3" />
-            <span>Edit Details</span>
+            {isVerifying ? (
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                <span>Confirming Identity...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-black stroke-[3]" />
+                <span className="truncate">Verify &amp; Connect to WhatsApp Desk</span>
+              </div>
+            )}
           </button>
-        </div>
 
-        <div className="space-y-1">
-          <h3 className="text-lg font-serif text-white">Enter Verification Code</h3>
-          <p className="text-xs text-slate-300 leading-relaxed font-light">
-            We sent a 6-digit confirmation PIN to{' '}
-            <span className="text-[#fbf5b7] font-medium font-mono">{formData.email}</span>. Please enter it below to confirm your genuine franchise candidacy.
+          <p className="text-[10px] text-center text-slate-400 font-light">
+            Protected by Shivmax Non-Disclosure &bull; 100% Confidential
           </p>
         </div>
-
-        {otpError && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-            <span>{otpError}</span>
-          </div>
-        )}
-
-        {/* 6 Individual PIN Input Boxes */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
-          {otpDigits.map((digit, idx) => (
-            <input
-              key={idx}
-              ref={(el) => {
-                otpInputRefs.current[idx] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={digit}
-              onChange={(e) => handleOtpChange(idx, e.target.value)}
-              onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-              className="w-11 sm:w-12 h-13 sm:h-14 text-center text-xl font-mono font-bold text-white bg-[#05070c] border border-[#d4af37]/40 focus:border-[#d4af37] focus:shadow-[0_0_15px_rgba(212,175,55,0.4)] rounded-xl outline-none transition-all"
-            />
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
-          <span>Valid for 10 minutes</span>
-          <button
-            type="button"
-            onClick={handleResendOtp}
-            disabled={resendCooldown > 0}
-            className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-              resendCooldown > 0 ? 'text-slate-600 cursor-not-allowed' : 'text-[#d4af37] hover:text-[#fbf5b7] underline'
-            }`}
-          >
-            <RefreshCw className={`w-3 h-3 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
-            <span>{resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}</span>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleVerifyOtp}
-          disabled={isVerifying || otpDigits.join('').length !== 6}
-          className="w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2"
-        >
-          {isVerifying ? (
-            <span>Confirming Identity...</span>
-          ) : (
-            <>
-              <Check className="w-4 h-4 text-black stroke-[3]" />
-              <span>Verify &amp; Connect to WhatsApp Desk</span>
-            </>
-          )}
-        </button>
-
-        <p className="text-[10px] text-center text-slate-400">
-          Protected by Shivmax Non-Disclosure &bull; 100% Confidential
-        </p>
       </div>
     );
   }
@@ -490,12 +527,12 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
   // =========================================================================
   if (viewState === 'verified') {
     return (
-      <div className="p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/60 text-center space-y-4 animate-in fade-in duration-300 shadow-2xl">
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0a0d14] border border-[#d4af37]/60 text-center space-y-4 animate-in fade-in duration-300 shadow-2xl">
         <div className="w-12 h-12 rounded-full bg-[#d4af37]/20 border border-[#d4af37] flex items-center justify-center mx-auto text-[#d4af37]">
           <Check className="w-6 h-6 stroke-[3]" />
         </div>
         <div className="space-y-1">
-          <h3 className="text-lg font-serif text-white">Identity Verified Successfully</h3>
+          <h3 className="text-base sm:text-lg font-serif text-white">Identity Verified Successfully</h3>
           <p className="text-xs text-slate-300">Connecting you to the Executive WhatsApp Desk...</p>
         </div>
         {successUrl && (
@@ -504,7 +541,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
               href={successUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#d4af37] text-black font-semibold text-xs uppercase tracking-wider hover:brightness-110 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#d4af37] text-black font-semibold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-lg"
             >
               <span>Click Here if WhatsApp Did Not Open</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -520,146 +557,176 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
   // =========================================================================
   if (isMobile) {
     return (
-      <form noValidate onSubmit={(e) => { e.preventDefault(); handleInitiateSubmission(); }} className="space-y-3.5 text-left">
+      <form noValidate onSubmit={(e) => { e.preventDefault(); handleInitiateSubmission(); }} className="space-y-3.5 text-left w-full">
         {generalError && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-500/50 text-red-300 text-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in duration-200 shadow-lg">
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-            <span>{generalError}</span>
+            <span className="font-medium leading-snug">{generalError}</span>
           </div>
         )}
 
-        <div>
+        {/* 1. Full Name */}
+        <div className="space-y-1">
+          <label htmlFor="mobile-franchise-fullName" className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]/90 block">
+            Full Name *
+          </label>
           <input
             id="mobile-franchise-fullName"
             type="text"
-            placeholder="Full Name *"
+            placeholder="e.g. Rajesh Sharma"
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
-            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.fullName ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
-            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+            className={`w-full h-11 sm:h-12 px-3.5 rounded-xl bg-[#05070c]/90 border ${
+              fieldErrors.fullName ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.12] focus:border-[#d4af37]'
+            } text-sm text-white placeholder-slate-500 focus:bg-[#080b12] focus:shadow-[0_0_12px_rgba(212,175,55,0.2)] focus:outline-none transition-all`}
           />
-          {fieldErrors.fullName && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.fullName}</p>}
+          {fieldErrors.fullName && <p className="text-[10.5px] text-red-400 mt-1 pl-1">{fieldErrors.fullName}</p>}
         </div>
 
-        <div>
+        {/* 2. Mobile Phone (WhatsApp) */}
+        <div className="space-y-1">
+          <label htmlFor="mobile-franchise-phone" className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]/90 block">
+            Mobile Number (WhatsApp) *
+          </label>
           <input
             id="mobile-franchise-phone"
             type="tel"
-            placeholder="Mobile Number (WhatsApp) *"
+            placeholder="+91 98765 43210"
             value={formData.phone}
             onChange={(e) => handleFieldChange('phone', e.target.value)}
-            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.phone ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
-            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-mono`}
+            className={`w-full h-11 sm:h-12 px-3.5 rounded-xl bg-[#05070c]/90 border ${
+              fieldErrors.phone ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.12] focus:border-[#d4af37]'
+            } text-sm text-white placeholder-slate-500 font-mono focus:bg-[#080b12] focus:shadow-[0_0_12px_rgba(212,175,55,0.2)] focus:outline-none transition-all`}
           />
-          {fieldErrors.phone && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.phone}</p>}
+          {fieldErrors.phone && <p className="text-[10.5px] text-red-400 mt-1 pl-1">{fieldErrors.phone}</p>}
         </div>
 
-        <div>
+        {/* 3. Email Address (For Verification PIN) */}
+        <div className="space-y-1">
+          <label htmlFor="mobile-franchise-email" className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]/90 block">
+            Email Address (For Verification PIN) *
+          </label>
           <input
             id="mobile-franchise-email"
             type="email"
-            placeholder="Email Address (For Verification PIN) *"
+            placeholder="e.g. rajesh@example.com"
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
-            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.email ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
-            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+            className={`w-full h-11 sm:h-12 px-3.5 rounded-xl bg-[#05070c]/90 border ${
+              fieldErrors.email ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.12] focus:border-[#d4af37]'
+            } text-sm text-white placeholder-slate-500 focus:bg-[#080b12] focus:shadow-[0_0_12px_rgba(212,175,55,0.2)] focus:outline-none transition-all`}
           />
-          {fieldErrors.email && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.email}</p>}
+          {fieldErrors.email && <p className="text-[10.5px] text-red-400 mt-1 pl-1">{fieldErrors.email}</p>}
         </div>
 
-        <div>
+        {/* 4. Target City / Location */}
+        <div className="space-y-1">
+          <label htmlFor="mobile-franchise-city" className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]/90 block">
+            Target City / Location *
+          </label>
           <input
             id="mobile-franchise-city"
             type="text"
-            placeholder="Target City *"
+            placeholder="e.g. Vadodara, Gujarat"
             value={formData.city}
             onChange={(e) => handleFieldChange('city', e.target.value)}
-            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
-              fieldErrors.city ? 'border-red-500/80' : 'border-white/[0.1] focus:border-[#d4af37]'
-            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+            className={`w-full h-11 sm:h-12 px-3.5 rounded-xl bg-[#05070c]/90 border ${
+              fieldErrors.city ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.12] focus:border-[#d4af37]'
+            } text-sm text-white placeholder-slate-500 focus:bg-[#080b12] focus:shadow-[0_0_12px_rgba(212,175,55,0.2)] focus:outline-none transition-all`}
           />
-          {fieldErrors.city && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.city}</p>}
+          {fieldErrors.city && <p className="text-[10.5px] text-red-400 mt-1 pl-1">{fieldErrors.city}</p>}
         </div>
 
-        {/* Theme-Matched Luxury Dropdown (Mobile) */}
-        <div className="relative z-30" ref={dropdownRef}>
-          <button
-            type="button"
-            role="combobox"
-            aria-expanded={isCategoryOpen}
-            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-            className="w-full px-3.5 py-3 rounded-xl bg-[#0a0d14] border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-xs text-white transition-all cursor-pointer flex items-center justify-between"
-          >
-            <span className="truncate">{formData.category}</span>
-            <ChevronDown className={`w-4 h-4 text-[#d4af37] transition-transform duration-300 ml-2 flex-shrink-0 ${isCategoryOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          {isCategoryOpen && (
-            <div
-              role="listbox"
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[320px] overflow-y-auto overscroll-contain"
+        {/* 5. Theme-Matched Luxury Dropdown (Mobile) */}
+        <div className="space-y-1 relative z-30" ref={dropdownRef}>
+          <label id="mobile-franchise-category-label" className="text-[11px] font-mono uppercase tracking-wider text-[#d4af37]/90 block">
+            Your Profile Category *
+          </label>
+          <div className="relative">
+            <button
+              type="button"
+              role="combobox"
+              aria-labelledby="mobile-franchise-category-label"
+              aria-expanded={isCategoryOpen}
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+              className="w-full h-11 sm:h-12 px-3.5 rounded-xl bg-[#05070c]/90 border border-[#d4af37]/40 hover:border-[#d4af37] focus:border-[#d4af37] text-left text-sm text-white transition-all cursor-pointer flex items-center justify-between shadow-inner"
             >
-              {PROFILE_CATEGORIES.map((cat) => {
-                const isSelected = formData.category === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      setFormData({ ...formData, category: cat });
-                      setIsCategoryOpen(false);
-                    }}
-                    className={`w-full px-4 py-2.5 text-left text-xs transition-all flex items-center justify-between cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#d4af37]/15 text-[#fbf5b7] font-medium'
-                        : 'text-slate-300 hover:text-white hover:bg-[#d4af37]/10'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-[#d4af37]" />}
-                  </button>
-                );
-              })}
+              <span className="truncate">{formData.category}</span>
+              <ChevronDown className={`w-4 h-4 text-[#d4af37] transition-transform duration-300 ml-2 flex-shrink-0 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isCategoryOpen && (
+              <div
+                role="listbox"
+                className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[280px] overflow-y-auto overscroll-contain"
+              >
+                {PROFILE_CATEGORIES.map((cat) => {
+                  const isSelected = formData.category === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setFormData({ ...formData, category: cat });
+                        setIsCategoryOpen(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-xs transition-all flex items-center justify-between cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#d4af37]/15 text-[#fbf5b7] font-medium'
+                          : 'text-slate-300 hover:text-white hover:bg-[#d4af37]/10'
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#d4af37]" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {formData.category === 'Other / Custom Profile' && (
+            <div className="pt-1.5 animate-in fade-in duration-200">
+              <input
+                id="mobile-franchise-customCategory"
+                type="text"
+                placeholder="Specify your background / profession..."
+                value={formData.customCategory}
+                onChange={(e) => handleFieldChange('customCategory', e.target.value)}
+                className={`w-full h-11 px-3.5 rounded-xl bg-[#05070c]/90 border ${
+                  fieldErrors.customCategory ? 'border-red-500/80' : 'border-[#d4af37]/50'
+                } text-sm text-white placeholder-slate-500 focus:outline-none transition-all`}
+              />
+              {fieldErrors.customCategory && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.customCategory}</p>}
             </div>
           )}
         </div>
 
-        {formData.category === 'Other / Custom Profile' && (
-          <div>
-            <input
-              id="mobile-franchise-customCategory"
-              type="text"
-              placeholder="Please specify your profession or background *"
-              value={formData.customCategory}
-              onChange={(e) => handleFieldChange('customCategory', e.target.value)}
-              className={`w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border ${
-                fieldErrors.customCategory ? 'border-red-500/80' : 'border-[#d4af37]/50'
-              } text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
-            />
-            {fieldErrors.customCategory && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.customCategory}</p>}
-          </div>
-        )}
-
+        {/* 6. Verify & Submit Button */}
         <button
           type="button"
           onClick={handleInitiateSubmission}
           disabled={isSubmitting}
-          className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] to-[#fbf5b7] hover:brightness-110 active:scale-[0.99] transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 pointer-events-auto select-auto"
+          className="relative z-20 w-full min-h-[48px] py-3.5 px-4 rounded-xl text-xs sm:text-[13px] font-bold tracking-[0.14em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
         >
           {isSubmitting ? (
-            <span>Verifying Application Eligibility...</span>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-black" />
+              <span>Verifying Application Eligibility...</span>
+            </div>
           ) : (
-            <>
-              <Send className="w-3.5 h-3.5 text-black" />
+            <div className="flex items-center gap-2 text-center">
+              <Send className="w-3.5 h-3.5 text-black shrink-0" />
               <span>Verify Mobile &amp; Connect to WhatsApp Desk</span>
-            </>
+            </div>
           )}
         </button>
+
+        <p className="text-[10px] text-center text-slate-400 font-light pt-0.5">
+          Protected by Shivmax Non-Disclosure &bull; 100% Confidential Direct Desk Review
+        </p>
       </form>
     );
   }

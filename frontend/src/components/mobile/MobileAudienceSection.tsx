@@ -145,9 +145,9 @@ export default function MobileAudienceSection() {
 
       {/* Embedded Mobile Franchise Application Form */}
       <div id="mobile-apply-form" className="relative z-20 max-w-xl mx-auto pt-4">
-        <div className="relative z-20 p-6 sm:p-8 rounded-2xl bg-[#090c12] border border-[#d4af37]/40 shadow-2xl space-y-5 text-left">
+        <div className="relative z-20 p-4 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl bg-[#090c12] border border-[#d4af37]/40 shadow-2xl space-y-4 sm:space-y-5 text-left">
           <div>
-            <span className="text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#d4af37] block mb-1">
+            <span className="text-[11px] sm:text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#d4af37] block mb-1">
               Official Franchise Application
             </span>
             <h3 className="text-xl sm:text-2xl font-serif text-white">
