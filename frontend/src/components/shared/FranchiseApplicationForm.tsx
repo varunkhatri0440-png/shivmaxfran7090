@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, ChevronDown, Check } from 'lucide-react';
+import { Send, ChevronDown, Check, AlertCircle, ExternalLink } from 'lucide-react';
 import { submitInquiry } from '@/lib/api';
-import { redirectToWhatsApp } from '@/lib/whatsapp';
+import { redirectToWhatsApp, getWhatsAppUrl } from '@/lib/whatsapp';
 
 const PROFILE_CATEGORIES = [
   'Salaried Professional (Job Worker)',
@@ -27,14 +27,16 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
     customCategory: '',
     timeline: 'Immediate',
     message: '',
-    fax_number: '',
   });
 
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string>('');
+  const [successUrl, setSuccessUrl] = useState<string | null>(null);
 
-  // Close dropdown on click outside
+  // Close category dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -50,129 +52,273 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       ? (formData.customCategory.trim() ? `Custom: ${formData.customCategory.trim()}` : 'Other / Custom Profile')
       : formData.category;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
 
-    // Anti-bot honeypot defense
-    if (formData.fax_number) {
-      setIsSubmitting(false);
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Full Name is required';
+    }
+
+    const digitsOnly = formData.phone.replace(/[^0-9]/g, '');
+    if (!digitsOnly || digitsOnly.length < 7) {
+      errors.phone = 'Please enter a valid phone number with at least 7 digits';
+    }
+
+    if (!formData.email.trim() || !formData.email.includes('@') || !formData.email.includes('.')) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'Target city / location is required';
+    }
+
+    if (formData.category === 'Other / Custom Profile' && !formData.customCategory.trim()) {
+      errors.customCategory = 'Please specify your profession or background';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const firstKey = Object.keys(errors)[0];
+      setGeneralError(errors[firstKey]);
+
+      // Focus the first invalid input
+      const inputId = isMobile ? `mobile-franchise-${firstKey}` : `desktop-franchise-${firstKey}`;
+      const el = document.getElementById(inputId);
+      if (el) el.focus();
+      return false;
+    }
+
+    setGeneralError('');
+    return true;
+  };
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+      if (generalError === fieldErrors[field]) {
+        setGeneralError('');
+      }
+    }
+  };
+
+  const submitApplication = async (preOpenedWindow?: Window | null) => {
+    const isValid = validate();
+    if (!isValid) {
+      if (preOpenedWindow && !preOpenedWindow.closed) {
+        try {
+          preOpenedWindow.close();
+        } catch {}
+      }
       return;
     }
 
     setIsSubmitting(true);
-    let referenceCode = '';
-
-    type ApiResponse = {
-      success: boolean;
-      message: string;
-      data?: { referenceCode?: string };
-    };
+    setGeneralError('');
 
     const fallbackCode = `SHV-VIP-${Math.floor(100000 + Math.random() * 900000)}`;
+    const submissionData = {
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      city: formData.city.trim(),
+      category: effectiveCategory,
+      timeline: formData.timeline,
+      message: formData.message.trim(),
+      referenceCode: fallbackCode,
+      source: 'shivmax.com',
+      propertyInterest: `Franchise Application: ${effectiveCategory} (${formData.city.trim()})`,
+      specialRequests: formData.message.trim() ? `Notes: ${formData.message.trim()}` : 'Shivmax Franchise Consultation',
+      tourType: 'Shivmax Franchise Consultation',
+    };
 
+    // 1. Immediately cache locally in browser
+    if (typeof window !== 'undefined') {
+      try {
+        const cacheKey = 'shivmax_franchise_inquiries_cache';
+        const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+        existing.unshift({
+          ...submissionData,
+          submittedAt: new Date().toISOString(),
+        });
+        localStorage.setItem(cacheKey, JSON.stringify(existing.slice(0, 50)));
+      } catch {}
+    }
+
+    // 2. Immediate Background Beacon (survives redirects, zero latency)
+    let crmApiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
+    if (!crmApiUrl) {
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        crmApiUrl = 'http://localhost:5001/api';
+      } else {
+        crmApiUrl = 'https://crm-shivmax.onrender.com/api';
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      try {
+        const beaconBlob = new Blob([JSON.stringify(submissionData)], { type: 'application/json' });
+        navigator.sendBeacon(`${crmApiUrl}/public/franchise-inquiry`, beaconBlob);
+      } catch {}
+    }
+
+    // 3. Fast CRM API Sync with rapid 1.2s timeout so applicant is never kept waiting
+    let finalCode = fallbackCode;
     try {
-      const apiPromise = submitInquiry({
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        city: formData.city,
-        category: effectiveCategory,
-        timeline: formData.timeline,
-        message: formData.message,
-        referenceCode: fallbackCode,
-        source: 'shivmax.com',
-        fax_number: formData.fax_number,
-        propertyInterest: `Franchise Application: ${effectiveCategory} (${formData.city})`,
-        specialRequests: formData.message ? `Notes: ${formData.message}` : 'Shivmax Franchise Consultation',
-        tourType: 'Shivmax Franchise Consultation',
-      });
-
-      const res = await Promise.race<ApiResponse>([
-        apiPromise,
-        new Promise<ApiResponse>((r) =>
-          setTimeout(
-            () =>
-              r({
-                success: true,
-                message: 'Application recorded. Connecting to WhatsApp...',
-                data: { referenceCode: fallbackCode },
-              }),
-            6000
-          )
+      type ApiRes = { success: boolean; data?: { referenceCode?: string } };
+      const res = await Promise.race<ApiRes>([
+        submitInquiry(submissionData),
+        new Promise<ApiRes>((resolve) =>
+          setTimeout(() => resolve({ success: true, data: { referenceCode: fallbackCode } }), 1200)
         ),
       ]);
-
-      referenceCode = res?.data?.referenceCode || fallbackCode;
-    } catch (err: unknown) {
-      console.warn('API submission error, proceeding directly to WhatsApp:', err);
-    } finally {
-      redirectToWhatsApp({
-        fullName: formData.fullName,
-        phone: formData.phone,
-        email: formData.email,
-        city: formData.city,
-        category: effectiveCategory,
-        timeline: formData.timeline,
-        message: formData.message,
-        referenceCode,
-      });
-      setIsSubmitting(false);
+      if (res?.data?.referenceCode) {
+        finalCode = res.data.referenceCode;
+      }
+    } catch (syncErr) {
+      console.warn('Proceeding with verified WhatsApp dispatch:', syncErr);
     }
+
+    const finalUrl = getWhatsAppUrl({
+      fullName: submissionData.fullName,
+      phone: submissionData.phone,
+      email: submissionData.email,
+      city: submissionData.city,
+      category: effectiveCategory,
+      timeline: submissionData.timeline,
+      message: submissionData.message,
+      referenceCode: finalCode,
+    });
+
+    setSuccessUrl(finalUrl);
+
+    // 4. Redirect to WhatsApp without popup blocker issues
+    redirectToWhatsApp(
+      {
+        fullName: submissionData.fullName,
+        phone: submissionData.phone,
+        email: submissionData.email,
+        city: submissionData.city,
+        category: effectiveCategory,
+        timeline: submissionData.timeline,
+        message: submissionData.message,
+        referenceCode: finalCode,
+      },
+      preOpenedWindow
+    );
+
+    setIsSubmitting(false);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    // Defeat popup blockers on PC browsers: Open a window synchronously during the user click event
+    let preOpenedWindow: Window | null = null;
+    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    if (!isMobileDevice && typeof window !== 'undefined') {
+      try {
+        preOpenedWindow = window.open('about:blank', '_blank');
+      } catch (err) {
+        console.warn('Synchronous popup open prevented:', err);
+      }
+    }
+
+    submitApplication(preOpenedWindow);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    let preOpenedWindow: Window | null = null;
+    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    if (!isMobileDevice && typeof window !== 'undefined') {
+      try {
+        preOpenedWindow = window.open('about:blank', '_blank');
+      } catch (err) {
+        console.warn('Synchronous popup open prevented:', err);
+      }
+    }
+
+    submitApplication(preOpenedWindow);
   };
 
   if (isMobile) {
     return (
-      <form onSubmit={handleSubmit} className="space-y-3.5">
-        {/* Anti-Bot Honeypot Field */}
-        <div className="opacity-0 absolute -left-[9999px] -top-[9999px] h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <form noValidate onSubmit={handleFormSubmit} className="space-y-3.5 text-left">
+        {generalError && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-500/50 text-red-300 text-xs animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span>{generalError}</span>
+          </div>
+        )}
+
+        <div>
           <input
+            id="mobile-franchise-fullName"
             type="text"
-            name="fax_number"
-            tabIndex={-1}
-            autoComplete="off"
-            value={formData.fax_number}
-            onChange={(e) => setFormData({ ...formData, fax_number: e.target.value })}
+            aria-label="Full Name"
+            placeholder="Full Name *"
+            value={formData.fullName}
+            onChange={(e) => handleFieldChange('fullName', e.target.value)}
+            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.fullName ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
           />
+          {fieldErrors.fullName && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.fullName}</p>}
         </div>
 
-        <input
-          type="text"
-          required
-          aria-label="Full Name"
-          placeholder="Full Name *"
-          value={formData.fullName}
-          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          className="w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
-        />
-        <input
-          type="tel"
-          required
-          aria-label="Mobile Number (WhatsApp)"
-          pattern="[0-9+\s\-()]{7,25}"
-          title="Please enter a valid phone number between 7 and 25 digits"
-          placeholder="Mobile Number (WhatsApp) *"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37] font-mono"
-        />
-        <input
-          type="email"
-          required
-          aria-label="Email Address"
-          placeholder="Email Address *"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
-        />
-        <input
-          type="text"
-          required
-          aria-label="Target City"
-          placeholder="Target City *"
-          value={formData.city}
-          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-          className="w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
-        />
+        <div>
+          <input
+            id="mobile-franchise-phone"
+            type="tel"
+            aria-label="Mobile Number (WhatsApp)"
+            placeholder="Mobile Number (WhatsApp) *"
+            value={formData.phone}
+            onChange={(e) => handleFieldChange('phone', e.target.value)}
+            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.phone ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-mono`}
+          />
+          {fieldErrors.phone && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.phone}</p>}
+        </div>
+
+        <div>
+          <input
+            id="mobile-franchise-email"
+            type="email"
+            aria-label="Email Address"
+            placeholder="Email Address *"
+            value={formData.email}
+            onChange={(e) => handleFieldChange('email', e.target.value)}
+            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.email ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+          />
+          {fieldErrors.email && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.email}</p>}
+        </div>
+
+        <div>
+          <input
+            id="mobile-franchise-city"
+            type="text"
+            aria-label="Target City"
+            placeholder="Target City *"
+            value={formData.city}
+            onChange={(e) => handleFieldChange('city', e.target.value)}
+            className={`w-full px-3.5 py-3 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.city ? 'border-red-500/80 focus:border-red-500' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+          />
+          {fieldErrors.city && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.city}</p>}
+        </div>
 
         {/* Theme-Matched Luxury Dropdown (Mobile) */}
         <div className="relative z-30" ref={dropdownRef}>
@@ -225,122 +371,151 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         </div>
 
         {formData.category === 'Other / Custom Profile' && (
-          <input
-            type="text"
-            required
-            aria-label="Specify your background or profession"
-            placeholder="Please specify your profession or background *"
-            value={formData.customCategory}
-            onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-[#d4af37]/50 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4af37]"
-          />
+          <div>
+            <input
+              id="mobile-franchise-customCategory"
+              type="text"
+              aria-label="Specify your background or profession"
+              placeholder="Please specify your profession or background *"
+              value={formData.customCategory}
+              onChange={(e) => handleFieldChange('customCategory', e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border ${
+                fieldErrors.customCategory ? 'border-red-500/80 focus:border-red-500' : 'border-[#d4af37]/50 focus:border-[#d4af37]'
+              } text-xs text-white placeholder-slate-500 focus:outline-none transition-all`}
+            />
+            {fieldErrors.customCategory && <p className="text-[10px] text-red-400 mt-1 pl-1">{fieldErrors.customCategory}</p>}
+          </div>
         )}
 
         <button
-          type="submit"
+          type="button"
+          onClick={handleButtonClick}
           disabled={isSubmitting}
-          className="w-full py-3.5 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] to-[#fbf5b7] shadow-lg cursor-pointer flex items-center justify-center gap-2"
+          className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] to-[#fbf5b7] hover:brightness-110 active:scale-[0.99] transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 pointer-events-auto select-auto"
         >
-          {isSubmitting ? 'Connecting...' : 'Submit to Executive WhatsApp Desk'}
+          {isSubmitting ? (
+            <span>Connecting to WhatsApp...</span>
+          ) : (
+            <>
+              <Send className="w-3.5 h-3.5 text-black" />
+              <span>Submit to Executive WhatsApp Desk</span>
+            </>
+          )}
         </button>
+
+        {successUrl && (
+          <div className="pt-1 text-center">
+            <a
+              href={successUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-[#fbf5b7] hover:text-white underline underline-offset-4"
+            >
+              <span>Click here if WhatsApp did not open automatically</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        )}
       </form>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 text-left">
-      {/* Anti-Bot Honeypot Field */}
-      <div className="opacity-0 absolute -left-[9999px] -top-[9999px] h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <input
-          type="text"
-          name="fax_number"
-          tabIndex={-1}
-          autoComplete="off"
-          value={formData.fax_number}
-          onChange={(e) => setFormData({ ...formData, fax_number: e.target.value })}
-        />
-      </div>
+    <form noValidate onSubmit={handleFormSubmit} className="space-y-3.5 xl:space-y-4 text-left">
+      {/* Visual Validation Notice */}
+      {generalError && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/50 border border-red-500/60 text-red-200 text-xs animate-in fade-in duration-200 shadow-lg">
+          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <span className="font-medium">{generalError}</span>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 xl:gap-4">
         {/* Full Name */}
-        <div className="space-y-1.5">
-          <label htmlFor="franchise-fullname" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+        <div className="space-y-1">
+          <label htmlFor="desktop-franchise-fullName" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Full Name *
           </label>
           <input
-            id="franchise-fullname"
+            id="desktop-franchise-fullName"
             type="text"
-            required
             placeholder="e.g. Rajesh Kumar"
             value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all"
+            onChange={(e) => handleFieldChange('fullName', e.target.value)}
+            className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.fullName ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
+          {fieldErrors.fullName && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.fullName}</p>}
         </div>
 
         {/* Mobile / WhatsApp */}
-        <div className="space-y-1.5">
-          <label htmlFor="franchise-phone" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+        <div className="space-y-1">
+          <label htmlFor="desktop-franchise-phone" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Mobile Number (WhatsApp) *
           </label>
           <input
-            id="franchise-phone"
+            id="desktop-franchise-phone"
             type="tel"
-            required
-            pattern="[0-9+\s\-()]{7,25}"
-            title="Please enter a valid phone number between 7 and 25 digits"
             placeholder="+91 98765 43210"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all font-mono"
+            onChange={(e) => handleFieldChange('phone', e.target.value)}
+            className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.phone ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all font-mono`}
           />
+          {fieldErrors.phone && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.phone}</p>}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 xl:gap-4">
         {/* Email */}
-        <div className="space-y-1.5">
-          <label htmlFor="franchise-email" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+        <div className="space-y-1">
+          <label htmlFor="desktop-franchise-email" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Email Address *
           </label>
           <input
-            id="franchise-email"
+            id="desktop-franchise-email"
             type="email"
-            required
             placeholder="rajesh@example.com"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all"
+            onChange={(e) => handleFieldChange('email', e.target.value)}
+            className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.email ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
+          {fieldErrors.email && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.email}</p>}
         </div>
 
         {/* Target City */}
-        <div className="space-y-1.5">
-          <label htmlFor="franchise-city" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+        <div className="space-y-1">
+          <label htmlFor="desktop-franchise-city" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
             Target City / Location *
           </label>
           <input
-            id="franchise-city"
+            id="desktop-franchise-city"
             type="text"
-            required
             placeholder="e.g. Vadodara, Ahmedabad, Surat"
             value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.1] focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all"
+            onChange={(e) => handleFieldChange('city', e.target.value)}
+            className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border ${
+              fieldErrors.city ? 'border-red-500/80 focus:border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/[0.1] focus:border-[#d4af37]'
+            } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
           />
+          {fieldErrors.city && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.city}</p>}
         </div>
       </div>
 
       {/* Target Profile Category — Theme-Matched Luxury Dropdown */}
-      <div className="space-y-1.5 relative z-30" ref={dropdownRef}>
-        <label id="franchise-category-label" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+      <div className="space-y-1 relative z-30" ref={dropdownRef}>
+        <label id="desktop-franchise-category-label" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
           Your Profile Category *
         </label>
         <div className="relative">
           <button
             type="button"
             role="combobox"
-            aria-labelledby="franchise-category-label"
+            aria-labelledby="desktop-franchise-category-label"
             aria-expanded={isCategoryOpen}
             aria-controls="desktop-category-list"
             aria-haspopup="listbox"
@@ -355,8 +530,8 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             <div
               id="desktop-category-list"
               role="listbox"
-              aria-labelledby="franchise-category-label"
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[320px] overflow-y-auto overscroll-contain"
+              aria-labelledby="desktop-franchise-category-label"
+              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[#090c13] border border-[#d4af37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.98)] backdrop-blur-2xl py-1.5 max-h-[260px] overflow-y-auto overscroll-contain"
             >
               {PROFILE_CATEGORIES.map((cat) => {
                 const isSelected = formData.category === cat;
@@ -389,25 +564,28 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         {formData.category === 'Other / Custom Profile' && (
           <div className="pt-1.5 animate-in fade-in duration-200">
             <input
+              id="desktop-franchise-customCategory"
               type="text"
-              required
               aria-label="Specify your background or profession"
               placeholder="Specify your background / profession (e.g. Doctor, Architect, Consultant)..."
               value={formData.customCategory}
-              onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl bg-white/[0.04] border border-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all"
+              onChange={(e) => handleFieldChange('customCategory', e.target.value)}
+              className={`w-full px-4 py-2 rounded-xl bg-white/[0.04] border ${
+                fieldErrors.customCategory ? 'border-red-500/80 focus:border-red-500' : 'border-[#d4af37]/40 focus:border-[#d4af37]'
+              } focus:outline-none text-base sm:text-xs text-white placeholder-slate-500 transition-all`}
             />
+            {fieldErrors.customCategory && <p className="text-[10px] text-red-400 font-mono pl-1">{fieldErrors.customCategory}</p>}
           </div>
         )}
       </div>
 
       {/* Special Strategic Notes */}
-      <div className="space-y-1.5">
-        <label htmlFor="franchise-message" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
+      <div className="space-y-1">
+        <label htmlFor="desktop-franchise-message" className="text-[10.5px] font-mono uppercase tracking-wider text-slate-300 block">
           Background &amp; Strategic Ambitions (Optional)
         </label>
         <textarea
-          id="franchise-message"
+          id="desktop-franchise-message"
           rows={2}
           placeholder="Share relevant domain background, network reach, or preferred location..."
           value={formData.message}
@@ -418,12 +596,13 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
 
       {/* Submit Button */}
       <button
-        type="submit"
+        type="button"
+        onClick={handleButtonClick}
         disabled={isSubmitting}
-        className="w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_30px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2"
+        className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_30px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
       >
         {isSubmitting ? (
-          <span>Generating Credentials...</span>
+          <span>Connecting to WhatsApp Desk...</span>
         ) : (
           <>
             <Send className="w-3.5 h-3.5 text-black" />
@@ -431,6 +610,20 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           </>
         )}
       </button>
+
+      {successUrl && (
+        <div className="pt-1 text-center animate-in fade-in">
+          <a
+            href={successUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-[#fbf5b7] hover:text-white underline underline-offset-4"
+          >
+            <span>Click here if WhatsApp did not open automatically</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      )}
 
       <p className="text-[10.5px] text-center text-slate-400 font-light">
         Protected by Shivmax Non-Disclosure &bull; 100% Confidential Direct Desk Review

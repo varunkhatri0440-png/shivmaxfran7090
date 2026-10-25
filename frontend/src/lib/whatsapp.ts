@@ -66,7 +66,10 @@ export function getWhatsAppUrl(data: FranchiseInquiryData): string {
 /**
  * Dispatches the user directly to WhatsApp with their filled-in details
  */
-export function redirectToWhatsApp(data: FranchiseInquiryData) {
+export function redirectToWhatsApp(
+  data: FranchiseInquiryData,
+  preOpenedWindow?: Window | null
+) {
   if (typeof window === 'undefined') return;
   const url = getWhatsAppUrl(data);
 
@@ -78,9 +81,23 @@ export function redirectToWhatsApp(data: FranchiseInquiryData) {
     // Native deep-link redirect for mobile
     window.location.href = url;
   } else {
-    // Open WhatsApp Web or Desktop application in a new tab on desktop
-    const win = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!win || win.closed || typeof win.closed === 'undefined') {
+    // If a tab was pre-opened synchronously during user click, navigate it directly
+    if (preOpenedWindow && !preOpenedWindow.closed) {
+      try {
+        preOpenedWindow.location.href = url;
+        return;
+      } catch (err) {
+        console.warn('Could not navigate pre-opened window, falling back:', err);
+      }
+    }
+
+    // Fallback: Open WhatsApp Web or Desktop application in a new tab on desktop
+    try {
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = url;
+      }
+    } catch {
       window.location.href = url;
     }
   }

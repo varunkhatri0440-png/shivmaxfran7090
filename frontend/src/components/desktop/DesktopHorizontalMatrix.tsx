@@ -179,12 +179,12 @@ export default function DesktopHorizontalMatrix({
               {/* PANEL 3: Official Franchise Application Terminal */}
               <div
                 id="apply"
-                className="w-screen h-full flex-shrink-0 flex items-center justify-center px-12 lg:px-20 py-8 relative"
+                className="w-screen h-full flex-shrink-0 flex items-center justify-center px-6 lg:px-14 xl:px-20 py-4 lg:py-6 relative overflow-y-auto"
               >
-                <div className="w-full max-w-[1300px] mx-auto grid grid-cols-12 gap-10 items-center">
+                <div className="w-full max-w-[1300px] mx-auto grid grid-cols-12 gap-6 lg:gap-10 items-center">
 
                   {/* Left Column: Directorate Invitation & Direct Contacts */}
-                  <div className="col-span-5 space-y-6 text-left">
+                  <div className="col-span-5 space-y-4 xl:space-y-6 text-left">
                     <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30">
                       <Shield className="w-4 h-4 text-[#d4af37]" />
                       <span className="text-xs font-mono tracking-widest uppercase text-[#fbf5b7] font-semibold">
@@ -193,10 +193,10 @@ export default function DesktopHorizontalMatrix({
                     </div>
 
                     <div className="space-y-2">
-                      <h3 className="text-4xl lg:text-5xl font-serif font-light text-white leading-tight">
+                      <h3 className="text-3xl lg:text-4xl xl:text-5xl font-serif font-light text-white leading-tight">
                         Apply for Franchise
                       </h3>
-                      <p className="text-lg font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text">
+                      <p className="text-base lg:text-lg font-serif italic text-transparent bg-gradient-to-r from-white via-[#fbf5b7] to-[#d4af37] bg-clip-text">
                         Direct Review by Mr. Vivek Mishra
                       </p>
                     </div>
@@ -205,7 +205,7 @@ export default function DesktopHorizontalMatrix({
                       Every application is reviewed directly by Mr. Vivek Mishra. Selected partners receive dedicated area rights and complete first-year setup support to launch their office.
                     </p>
 
-                    <div className="space-y-2.5 pt-2 border-t border-white/[0.08] text-xs font-mono text-slate-300">
+                    <div className="space-y-2 pt-2 border-t border-white/[0.08] text-xs font-mono text-slate-300">
                       <div className="flex items-center gap-2">
                         <span className="text-[#d4af37]">&bull;</span>
                         <span>Corporate Office: Vadodara, Gujarat</span>
@@ -223,14 +223,14 @@ export default function DesktopHorizontalMatrix({
 
                   {/* Right Column: Embedded Lead Form */}
                   <div className="col-span-7">
-                    <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0d14] via-[#06080d] to-[#0c1018] border border-white/[0.12] shadow-2xl relative z-20">
+                    <div className="p-5 sm:p-6 lg:p-7 xl:p-8 rounded-3xl bg-gradient-to-br from-[#0a0d14] via-[#06080d] to-[#0c1018] border border-white/[0.12] shadow-2xl relative z-20 max-h-[calc(100vh-100px)] overflow-y-auto overscroll-contain select-auto">
                       <div className="absolute top-0 left-0 w-32 h-[2px] bg-gradient-to-r from-[#d4af37] to-transparent" />
 
-                      <div className="mb-6 text-left">
+                      <div className="mb-4 xl:mb-6 text-left">
                         <span className="text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#d4af37] block mb-1">
                           Official Franchise Application
                         </span>
-                        <h4 className="text-xl font-serif text-white">
+                        <h4 className="text-lg xl:text-xl font-serif text-white">
                           Submit Application to Vadodara Directorate
                         </h4>
                       </div>
