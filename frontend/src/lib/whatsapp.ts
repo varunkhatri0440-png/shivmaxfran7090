@@ -49,7 +49,6 @@ export function buildWhatsAppMessage(data: FranchiseInquiryData): string {
   }
 
   lines.push('━━━━━━━━━━━━━━━━━━━━━');
-  lines.push(`🆔 *Ref:* \`${refCode}\` • ★★★★★ VIP`);
   lines.push('✨ _365-Day Fully-Funded Launch_');
 
   return lines.join('\n');

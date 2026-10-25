@@ -364,7 +364,7 @@ export async function submitInquiry(payload: InquiryPayload): Promise<InquiryRes
 
   return {
     success: true,
-    message: `Your franchise application has been recorded. Reference: ${randomCode}. Connecting to WhatsApp...`,
+    message: 'Your franchise application has been recorded. Connecting to WhatsApp...',
     data: {
       referenceCode: randomCode,
       status: 'Confirmed',
