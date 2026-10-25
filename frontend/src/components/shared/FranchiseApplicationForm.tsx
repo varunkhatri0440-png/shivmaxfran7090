@@ -389,10 +389,12 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             href={directWhatsAppDesk}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full min-h-[46px] py-3 px-3 rounded-xl text-xs font-semibold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 text-center"
+            className="w-full min-h-[50px] py-3.5 px-4 rounded-xl text-black bg-gradient-to-r from-[#d4af37] via-[#fff2b2] to-[#cba328] hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_4px_22px_rgba(212,175,55,0.4)] border border-[#fff2b2]/50 flex items-center justify-center gap-2 text-center cursor-pointer"
           >
             <MessageCircle className="w-4 h-4 text-black shrink-0" />
-            <span className="truncate">Connect Directly with Executive Desk</span>
+            <span className="text-[12px] sm:text-[13px] font-bold tracking-wider uppercase text-black leading-tight">
+              Connect Directly with Executive Desk
+            </span>
           </a>
 
           <button
@@ -499,17 +501,21 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
             type="button"
             onClick={handleVerifyOtp}
             disabled={isVerifying || otpDigits.join('').length !== 6}
-            className="w-full min-h-[48px] py-3.5 px-4 rounded-xl text-xs font-bold tracking-[0.16em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2"
+            className="w-full min-h-[50px] py-3.5 px-4 rounded-xl text-black bg-gradient-to-r from-[#d4af37] via-[#fff2b2] to-[#cba328] hover:brightness-105 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_4px_22px_rgba(212,175,55,0.4)] border border-[#fff2b2]/50 cursor-pointer flex items-center justify-center gap-2"
           >
             {isVerifying ? (
-              <div className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                <span>Confirming Identity...</span>
+              <div className="flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-black shrink-0" />
+                <span className="text-xs sm:text-[13px] font-bold tracking-wider uppercase text-black">
+                  Confirming Identity...
+                </span>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-black stroke-[3]" />
-                <span className="truncate">Verify &amp; Connect to WhatsApp Desk</span>
+              <div className="flex items-center justify-center gap-2 text-center">
+                <Check className="w-4 h-4 text-black stroke-[3] shrink-0" />
+                <span className="text-[11.5px] xs:text-xs sm:text-[13px] font-bold tracking-wide uppercase text-black leading-tight">
+                  Verify &amp; Connect to WhatsApp Desk
+                </span>
               </div>
             )}
           </button>
@@ -709,17 +715,21 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           type="button"
           onClick={handleInitiateSubmission}
           disabled={isSubmitting}
-          className="relative z-20 w-full min-h-[48px] py-3.5 px-4 rounded-xl text-xs sm:text-[13px] font-bold tracking-[0.14em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_25px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
+          className="relative z-20 w-full min-h-[50px] py-3.5 px-4 rounded-xl text-black bg-gradient-to-r from-[#d4af37] via-[#fff2b2] to-[#cba328] hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_4px_22px_rgba(212,175,55,0.4)] border border-[#fff2b2]/50 cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
         >
           {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-black" />
-              <span>Verifying Application Eligibility...</span>
+            <div className="flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-black shrink-0" />
+              <span className="text-xs sm:text-[13px] font-bold tracking-wider uppercase text-black">
+                Verifying Application Eligibility...
+              </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-center">
               <Send className="w-3.5 h-3.5 text-black shrink-0" />
-              <span>Verify Mobile &amp; Connect to WhatsApp Desk</span>
+              <span className="text-[11.5px] xs:text-xs sm:text-[13px] font-bold tracking-wide uppercase text-black leading-tight">
+                Verify Mobile &amp; Connect to WhatsApp Desk
+              </span>
             </div>
           )}
         </button>
@@ -905,15 +915,18 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
         type="button"
         onClick={handleInitiateSubmission}
         disabled={isSubmitting}
-        className="relative z-20 w-full py-3.5 rounded-xl text-xs font-semibold tracking-[0.2em] uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#b38728] hover:brightness-110 active:scale-[0.99] transition-all shadow-[0_0_30px_rgba(212,175,55,0.35)] cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
+        className="relative z-20 w-full min-h-[50px] py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold tracking-wider uppercase text-black bg-gradient-to-r from-[#d4af37] via-[#fff2b2] to-[#cba328] hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_4px_25px_rgba(212,175,55,0.45)] border border-[#fff2b2]/50 cursor-pointer flex items-center justify-center gap-2 mt-2 pointer-events-auto select-auto"
       >
         {isSubmitting ? (
-          <span>Verifying Application Eligibility...</span>
+          <div className="flex items-center justify-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-black shrink-0" />
+            <span>Verifying Application Eligibility...</span>
+          </div>
         ) : (
-          <>
-            <Send className="w-3.5 h-3.5 text-black" />
+          <div className="flex items-center justify-center gap-2">
+            <Send className="w-4 h-4 text-black shrink-0" />
             <span>Submit &amp; Connect to Executive WhatsApp Desk</span>
-          </>
+          </div>
         )}
       </button>
 
