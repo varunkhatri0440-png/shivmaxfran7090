@@ -60,8 +60,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
   // Cooldown timer for resending OTP
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Pre-opened window reference to eliminate popup-blocker issues on desktop
-  const preOpenedWinRef = useRef<Window | null>(null);
 
   // Handle countdown timer
   useEffect(() => {
@@ -153,15 +151,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
     setIsSubmitting(true);
     setGeneralError('');
 
-    // Pre-open window synchronously during user click to defeat desktop popup blockers
-    const isMobileDevice = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-    if (!isMobileDevice && typeof window !== 'undefined') {
-      try {
-        preOpenedWinRef.current = window.open('about:blank', '_blank');
-      } catch (err) {
-        console.warn('Pre-open tab blocked:', err);
-      }
-    }
 
     const payload = {
       fullName: formData.fullName.trim(),
@@ -181,12 +170,6 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       const res = await sendFranchiseOtp(payload);
 
       if (!res.success) {
-        // Close pre-opened window if not proceeding
-        if (preOpenedWinRef.current && !preOpenedWinRef.current.closed) {
-          try {
-            preOpenedWinRef.current.close();
-          } catch {}
-        }
 
         if (res.code === 'ALREADY_SUBMITTED') {
           setViewState('already_applied');
@@ -298,18 +281,15 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
       }
 
       // Direct to WhatsApp
-      redirectToWhatsApp(
-        {
-          fullName: formData.fullName.trim(),
-          phone: formData.phone.trim(),
-          email: formData.email.trim(),
-          city: formData.city.trim(),
-          category: effectiveCategory,
-          timeline: formData.timeline,
-          message: formData.message.trim(),
-        },
-        preOpenedWinRef.current
-      );
+      redirectToWhatsApp({
+        fullName: formData.fullName.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        city: formData.city.trim(),
+        category: effectiveCategory,
+        timeline: formData.timeline,
+        message: formData.message.trim(),
+      });
     } catch {
       setOtpError('Connection error verifying PIN. Please try again.');
     } finally {
@@ -425,14 +405,7 @@ export default function FranchiseApplicationForm({ isMobile = false }: Franchise
           </div>
           <button
             type="button"
-            onClick={() => {
-              if (preOpenedWinRef.current && !preOpenedWinRef.current.closed) {
-                try {
-                  preOpenedWinRef.current.close();
-                } catch {}
-              }
-              setViewState('form');
-            }}
+            onClick={() => setViewState('form')}
             className="text-[11px] font-mono text-slate-400 hover:text-[#d4af37] transition-colors flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft className="w-3 h-3" />
